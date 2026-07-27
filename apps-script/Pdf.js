@@ -40,33 +40,52 @@ function cotizacionesGenerarPdf(cotizacionId) {
 }
 
 function agregarEncabezado_(body, cot, config, moneda) {
-  var tabla = body.appendTable([['', '']]);
-  tabla.setBorderWidth(0);
-  tabla.setColumnWidth(0, 320);
-  tabla.setColumnWidth(1, 202);
+  insertarLogoCentrado_(body, config.LogoUrl);
+  body.appendParagraph(' ').setFontSize(6);
 
-  var celdaEmpresa = tabla.getCell(0, 0);
-  insertarLogoEnCelda_(celdaEmpresa, config.LogoUrl);
-  var pNombre = celdaEmpresa.appendParagraph(config.NombreEmpresa || 'Innova App Solutions');
-  pNombre.editAsText().setBold(true).setFontSize(15).setForegroundColor(COLOR_MARCA);
-  var firmante = [config.NombreFirmante, config.Cargo].filter(Boolean).join(' — ');
-  if (firmante) {
-    celdaEmpresa.appendParagraph(firmante).editAsText().setFontSize(10).setBold(true).setForegroundColor('#333333');
-  }
-  [
+  // Fila 1: nombre de la empresa (izq) alineado con "COTIZACIÓN" (der).
+  var filaTitulo = body.appendTable([['', '']]);
+  filaTitulo.setBorderWidth(0);
+  filaTitulo.setColumnWidth(0, 320);
+  filaTitulo.setColumnWidth(1, 202);
+
+  var pEmpresa = filaTitulo.getCell(0, 0).getChild(0).asParagraph();
+  var textoEmpresa = pEmpresa.editAsText();
+  textoEmpresa.setText(config.NombreEmpresa || 'Innova App Solutions');
+  textoEmpresa.setBold(true).setFontSize(16).setForegroundColor(COLOR_MARCA);
+
+  var pTitulo = filaTitulo.getCell(0, 1).getChild(0).asParagraph();
+  pTitulo.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
+  var textoTitulo = pTitulo.editAsText();
+  textoTitulo.setText('COTIZACIÓN');
+  textoTitulo.setBold(true).setFontSize(16).setForegroundColor(COLOR_MARCA);
+
+  // Fila 2: tus datos (izq) + folio/fecha/validez (der).
+  var filaDatos = body.appendTable([['', '']]);
+  filaDatos.setBorderWidth(0);
+  filaDatos.setColumnWidth(0, 320);
+  filaDatos.setColumnWidth(1, 202);
+
+  var celdaDatos = filaDatos.getCell(0, 0);
+  var lineasDatos = [
+    config.NombreFirmante,
+    config.Cargo,
+    config.Telefono,
+    config.EmailContacto,
     config.Direccion,
-    [config.Telefono, config.EmailContacto].filter(Boolean).join('   ·   '),
     config.RUC ? 'RUC/Cédula: ' + config.RUC : ''
-  ].filter(Boolean).forEach(function (linea) {
-    celdaEmpresa.appendParagraph(linea).editAsText().setFontSize(9).setForegroundColor('#444444');
+  ].filter(Boolean);
+  lineasDatos.forEach(function (linea, i) {
+    var parrafo = i === 0 ? celdaDatos.getChild(0).asParagraph() : celdaDatos.appendParagraph('');
+    var texto = parrafo.editAsText();
+    texto.setText(linea);
+    texto.setFontSize(9.5).setForegroundColor('#444444');
   });
 
-  var celdaMeta = tabla.getCell(0, 1);
-  var pTitulo = celdaMeta.appendParagraph('COTIZACIÓN');
-  pTitulo.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
-  pTitulo.editAsText().setBold(true).setFontSize(19).setForegroundColor(COLOR_MARCA);
-
-  celdaMeta.appendParagraph(' ').setFontSize(4);
+  var celdaMeta = filaDatos.getCell(0, 1);
+  var textoVacio = celdaMeta.getChild(0).asParagraph().editAsText();
+  textoVacio.setText(' ');
+  textoVacio.setFontSize(4);
   lineaEtiquetaValor_(celdaMeta, 'Folio', cot.Folio, DocumentApp.HorizontalAlignment.RIGHT);
   lineaEtiquetaValor_(celdaMeta, 'Fecha', formatearFecha_(cot.Fecha), DocumentApp.HorizontalAlignment.RIGHT);
   lineaEtiquetaValor_(celdaMeta, 'Válido hasta', formatearFecha_(sumarDias_(cot.Fecha, cot.ValidezDias)), DocumentApp.HorizontalAlignment.RIGHT);
@@ -166,15 +185,17 @@ function agregarLineaTotal_(body, etiqueta, valor, esTotal) {
   }
 }
 
-function insertarLogoEnCelda_(celda, logoUrl) {
+function insertarLogoCentrado_(body, logoUrl) {
   if (!logoUrl) return;
   try {
     var resp = UrlFetchApp.fetch(logoUrl, { muteHttpExceptions: true });
     if (resp.getResponseCode() === 200) {
-      var imagen = celda.appendImage(resp.getBlob());
+      var parrafo = body.appendParagraph('');
+      parrafo.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      var imagen = parrafo.appendInlineImage(resp.getBlob());
       var proporcion = imagen.getHeight() / imagen.getWidth();
-      imagen.setWidth(46);
-      imagen.setHeight(Math.round(46 * proporcion));
+      imagen.setWidth(85);
+      imagen.setHeight(Math.round(85 * proporcion));
     }
   } catch (e) {
     // Si el logo no carga, la cotización se genera igual sin logo.
