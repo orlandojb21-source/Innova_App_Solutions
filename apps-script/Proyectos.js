@@ -24,12 +24,13 @@ function reemplazarEntregables_(proyectoId, entregables) {
     if (data[i][1] === proyectoId) sheet.deleteRow(i + 1);
   }
   (entregables || [])
-    .filter(function (e) { return e.Descripcion && String(e.Descripcion).trim(); })
+    .filter(function (e) { return e.Titulo && String(e.Titulo).trim(); })
     .forEach(function (e) {
       appendRow(sheet, {
         Id: newId(),
         ProyectoId: proyectoId,
-        Descripcion: e.Descripcion,
+        Titulo: e.Titulo,
+        Descripcion: e.Descripcion || '',
         Estado: e.Estado || 'Pendiente'
       });
     });

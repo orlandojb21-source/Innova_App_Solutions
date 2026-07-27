@@ -305,7 +305,7 @@ function agregarTablaItems_(body, items, moneda) {
 function agregarTablaEntregables_(body, entregables) {
   var filas = [['Entregable', 'Estado']];
   entregables.forEach(function (e) {
-    filas.push([String(e.Descripcion), String(e.Estado || 'Pendiente')]);
+    filas.push([String(e.Titulo || '(sin título)'), String(e.Estado || 'Pendiente')]);
   });
 
   var tabla = body.appendTable(filas);
@@ -325,10 +325,17 @@ function agregarTablaEntregables_(body, entregables) {
         celda.editAsText().setBold(true).setForegroundColor('#ffffff').setFontSize(9.5);
       } else {
         celda.setBackgroundColor(f % 2 === 0 ? COLOR_FILA_PAR : '#ffffff');
-        celda.editAsText().setFontSize(9.5).setForegroundColor('#1a2233');
+        celda.editAsText().setBold(true).setFontSize(9.5).setForegroundColor('#1a2233');
       }
       if (c === 1) {
         celda.getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      }
+    }
+    if (!esEncabezado) {
+      var detalle = entregables[f - 1].Descripcion;
+      if (detalle) {
+        var pDetalle = fila.getCell(0).appendParagraph(detalle);
+        pDetalle.editAsText().setBold(false).setFontSize(9).setForegroundColor('#555555');
       }
     }
   }

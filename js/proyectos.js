@@ -29,68 +29,110 @@ async function cargarListaProyectos(contenedor) {
       return;
     }
     const clientePorId = Object.fromEntries(clientes.map((c) => [c.Id, c]));
-    const ventaPorId = Object.fromEntries(ventas.map((v) => [v.Id, v]));
     destino.innerHTML = `
       <div class="grid-proyectos">
         ${proyectos.map((p) => {
           const cliente = clientePorId[p.ClienteId];
-          const venta = ventaPorId[p.VentaId];
           return `
             <div class="tarjeta-proyecto">
               <h4>${esc(p.Nombre)}</h4>
               <div class="cliente-proyecto">${cliente ? esc(cliente.Nombre) : 'Sin cliente asociado'}</div>
               ${badgeEstado(p.Estado, BADGES_PROYECTO)}
-              ${venta ? `<div class="cliente-proyecto">Facturación: ${esc(venta.FacturaFolio || venta.Concepto)} · ${badgeEstado(venta.Estado, BADGES_VENTA)}</div>` : ''}
-              ${p.Descripcion ? `<p class="desc">${esc(p.Descripcion)}</p>` : ''}
-              ${p.Stack ? `<div class="stack">${esc(p.Stack)}</div>` : ''}
-              <div class="enlaces">
-                ${p.UrlRepo ? `<a href="${esc(p.UrlRepo)}" target="_blank" rel="noopener">Repositorio</a>` : ''}
-                ${p.UrlDemo ? `<a href="${esc(p.UrlDemo)}" target="_blank" rel="noopener">Demo</a>` : ''}
-              </div>
               <div class="acciones-fila" style="margin-top:12px">
-                <button class="btn btn-secundario btn-chico" data-descargar-proyecto="${esc(p.Id)}">Descargar PDF</button>
-                <button class="btn btn-secundario btn-chico" data-editar-proyecto="${esc(p.Id)}">Editar</button>
-                <button class="btn btn-peligro btn-chico" data-eliminar-proyecto="${esc(p.Id)}">Eliminar</button>
+                <button class="btn btn-primario btn-chico" data-ver-proyecto="${esc(p.Id)}">Vista general</button>
               </div>
             </div>
           `;
         }).join('')}
       </div>
     `;
-    qsa('[data-editar-proyecto]', destino).forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        btn.disabled = true;
-        try {
-          const proyecto = await llamarApi('proyectos.obtener', { Id: btn.dataset.editarProyecto });
-          abrirFormularioProyecto(proyecto, clientes, ventas);
-        } catch (e) {
-          mostrarToast(e.message, 'error');
-        } finally {
-          btn.disabled = false;
-        }
-      });
-    });
-    qsa('[data-eliminar-proyecto]', destino).forEach((btn) => {
-      btn.addEventListener('click', () => eliminarProyecto(btn.dataset.eliminarProyecto));
-    });
-    qsa('[data-descargar-proyecto]', destino).forEach((btn) => {
-      btn.addEventListener('click', () => descargarPdfProyecto(btn.dataset.descargarProyecto, btn));
+    qsa('[data-ver-proyecto]', destino).forEach((btn) => {
+      btn.addEventListener('click', () => abrirDetalleProyecto(btn.dataset.verProyecto, clientes, ventas));
     });
   } catch (e) {
     destino.innerHTML = `<div class="vacio">${esc(e.message)}</div>`;
   }
 }
 
+async function abrirDetalleProyecto(id, clientes, ventas) {
+  abrirModal('<div class="vacio">Cargando…</div>');
+  try {
+    const proyecto = await llamarApi('proyectos.obtener', { Id: id });
+    const cliente = clientes.find((c) => c.Id === proyecto.ClienteId);
+    const venta = ventas.find((v) => v.Id === proyecto.VentaId);
+
+    abrirModal(`
+      <h3>${esc(proyecto.Nombre)} ${badgeEstado(proyecto.Estado, BADGES_PROYECTO)}</h3>
+      <p style="color:var(--texto-sub);font-size:13.5px;margin-top:-8px">
+        ${cliente ? esc(cliente.Nombre) : 'Sin cliente asociado'}
+      </p>
+
+      ${proyecto.Stack ? `<p><strong>Stack:</strong> ${esc(proyecto.Stack)}</p>` : ''}
+      ${(proyecto.FechaInicio || proyecto.FechaEntrega) ? `<p><strong>Fechas:</strong> ${proyecto.FechaInicio ? formatDate(proyecto.FechaInicio) : '—'} → ${proyecto.FechaEntrega ? formatDate(proyecto.FechaEntrega) : '—'}</p>` : ''}
+      ${venta ? `<p><strong>Facturación:</strong> ${esc(venta.FacturaFolio || venta.Concepto)} · ${badgeEstado(venta.Estado, BADGES_VENTA)}</p>` : ''}
+      ${(proyecto.UrlRepo || proyecto.UrlDemo) ? `
+        <div class="enlaces" style="margin:8px 0">
+          ${proyecto.UrlRepo ? `<a href="${esc(proyecto.UrlRepo)}" target="_blank" rel="noopener">Repositorio</a>` : ''}
+          ${proyecto.UrlDemo ? `<a href="${esc(proyecto.UrlDemo)}" target="_blank" rel="noopener">Demo</a>` : ''}
+        </div>
+      ` : ''}
+
+      ${proyecto.Descripcion ? `<p style="margin-top:12px"><strong>Descripción</strong><br>${esc(proyecto.Descripcion)}</p>` : ''}
+      ${proyecto.Alcance ? `<p style="margin-top:12px"><strong>Alcance</strong><br>${esc(proyecto.Alcance)}</p>` : ''}
+
+      ${(proyecto.Entregables && proyecto.Entregables.length) ? `
+        <div style="margin-top:12px">
+          <strong>Entregables</strong>
+          <table class="tabla" style="margin-top:6px">
+            <thead><tr><th>Entregable</th><th>Estado</th></tr></thead>
+            <tbody>
+              ${proyecto.Entregables.map((e) => `
+                <tr>
+                  <td>
+                    <strong>${esc(e.Titulo)}</strong>
+                    ${e.Descripcion ? `<div style="color:var(--texto-sub);font-size:12.5px;margin-top:2px">${esc(e.Descripcion)}</div>` : ''}
+                  </td>
+                  <td>${badgeEstado(e.Estado, BADGES_ENTREGABLE)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      ` : ''}
+
+      ${proyecto.Notas ? `<p style="margin-top:12px"><strong>Notas:</strong> ${esc(proyecto.Notas)}</p>` : ''}
+
+      <div class="modal-acciones" style="flex-wrap:wrap">
+        <button type="button" class="btn btn-secundario" id="btn-descargar-proyecto-detalle">Descargar PDF</button>
+        <button type="button" class="btn btn-secundario" id="btn-editar-proyecto-detalle">Editar</button>
+        <button type="button" class="btn btn-peligro" id="btn-eliminar-proyecto-detalle">Eliminar</button>
+        <button type="button" class="btn btn-secundario" data-cerrar-modal>Cerrar</button>
+      </div>
+    `);
+
+    const modal = qs('#modal-contenido');
+    qs('#btn-descargar-proyecto-detalle', modal).addEventListener('click', (e) => descargarPdfProyecto(proyecto.Id, e.target));
+    qs('#btn-editar-proyecto-detalle', modal).addEventListener('click', () => abrirFormularioProyecto(proyecto, clientes, ventas));
+    qs('#btn-eliminar-proyecto-detalle', modal).addEventListener('click', () => eliminarProyecto(proyecto.Id));
+  } catch (e) {
+    mostrarToast(e.message, 'error');
+    cerrarModal();
+  }
+}
+
 function filaEntregableHtml(entregable) {
-  const e = entregable || { Descripcion: '', Estado: 'Pendiente' };
+  const e = entregable || { Titulo: '', Descripcion: '', Estado: 'Pendiente' };
   return `
-    <div class="fila-entregable" data-fila-entregable>
-      <input type="text" class="entregable-desc" placeholder="Descripción del entregable" value="${esc(e.Descripcion)}">
-      <select class="entregable-estado">
-        <option value="Pendiente" ${e.Estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-        <option value="Entregado" ${e.Estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
-      </select>
-      <button type="button" class="quitar-item" title="Quitar entregable">×</button>
+    <div class="entregable-caja" data-fila-entregable>
+      <div class="entregable-fila-superior">
+        <input type="text" class="entregable-titulo" placeholder="Título del entregable" value="${esc(e.Titulo)}">
+        <select class="entregable-estado">
+          <option value="Pendiente" ${e.Estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+          <option value="Entregado" ${e.Estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
+        </select>
+        <button type="button" class="quitar-item" title="Quitar entregable">×</button>
+      </div>
+      <textarea class="entregable-detalle" placeholder="Detalle de este entregable">${esc(e.Descripcion)}</textarea>
     </div>
   `;
 }
@@ -99,7 +141,7 @@ async function abrirFormularioProyecto(proyecto, clientesPrecargados, ventasPrec
   const clientes = clientesPrecargados || await obtenerClientesParaSelect();
   const ventas = ventasPrecargadas || await llamarApi('ventas.listar').catch(() => []);
   const editando = !!proyecto;
-  const entregables = (editando && proyecto.Entregables && proyecto.Entregables.length) ? proyecto.Entregables : [{ Descripcion: '', Estado: 'Pendiente' }];
+  const entregables = (editando && proyecto.Entregables && proyecto.Entregables.length) ? proyecto.Entregables : [{ Titulo: '', Descripcion: '', Estado: 'Pendiente' }];
 
   abrirModal(`
     <h3>${editando ? 'Editar proyecto' : 'Nuevo proyecto'}</h3>
@@ -136,7 +178,7 @@ async function abrirFormularioProyecto(proyecto, clientesPrecargados, ventasPrec
 
       <div class="campo full" style="margin-top:14px">
         <label>Entregables</label>
-        <div class="items-cotizacion" id="entregables-container">
+        <div id="entregables-container">
           ${entregables.map(filaEntregableHtml).join('')}
         </div>
         <button type="button" class="btn btn-secundario btn-chico" id="btn-agregar-entregable">+ Agregar entregable</button>
@@ -161,7 +203,9 @@ async function abrirFormularioProyecto(proyecto, clientesPrecargados, ventasPrec
       if (filas.length > 1) {
         e.target.closest('[data-fila-entregable]').remove();
       } else {
-        e.target.closest('[data-fila-entregable]').querySelector('.entregable-desc').value = '';
+        const caja = e.target.closest('[data-fila-entregable]');
+        caja.querySelector('.entregable-titulo').value = '';
+        caja.querySelector('.entregable-detalle').value = '';
       }
     }
   });
@@ -172,10 +216,11 @@ async function abrirFormularioProyecto(proyecto, clientesPrecargados, ventasPrec
 function leerEntregablesDelFormulario(modal) {
   return qsa('[data-fila-entregable]', modal)
     .map((fila) => ({
-      Descripcion: qs('.entregable-desc', fila).value.trim(),
+      Titulo: qs('.entregable-titulo', fila).value.trim(),
+      Descripcion: qs('.entregable-detalle', fila).value.trim(),
       Estado: qs('.entregable-estado', fila).value
     }))
-    .filter((e) => e.Descripcion);
+    .filter((e) => e.Titulo);
 }
 
 async function guardarProyecto(e, id) {
@@ -204,6 +249,7 @@ async function eliminarProyecto(id) {
   if (!confirm('¿Eliminar este proyecto?')) return;
   try {
     await llamarApi('proyectos.eliminar', { Id: id });
+    cerrarModal();
     mostrarToast('Proyecto eliminado.', 'exito');
     cargarListaProyectos();
   } catch (err) {

@@ -30,7 +30,7 @@ function configurarProyecto() {
     'Ventas': ['Id', 'ClienteId', 'CotizacionId', 'Concepto', 'Monto', 'MontoPagado', 'FacturaFolio', 'Fecha', 'Estado', 'MetodoPago', 'Notas', 'FechaCreacion'],
     'Abonos': ['Id', 'VentaId', 'Folio', 'Monto', 'Fecha', 'FechaCreacion'],
     'Proyectos': ['Id', 'ClienteId', 'VentaId', 'Nombre', 'Descripcion', 'Alcance', 'Stack', 'FechaInicio', 'FechaEntrega', 'Estado', 'UrlRepo', 'UrlDemo', 'Notas', 'FechaCreacion'],
-    'ProyectoEntregables': ['Id', 'ProyectoId', 'Descripcion', 'Estado'],
+    'ProyectoEntregables': ['Id', 'ProyectoId', 'Titulo', 'Descripcion', 'Estado'],
     'Suscripciones': ['Id', 'ClienteId', 'ProyectoId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
     'Config': ['Clave', 'Valor']
   };
@@ -193,4 +193,13 @@ function agregarAlcanceYEntregablesAProyectos() {
  */
 function agregarVentaAProyectos() {
   agregarColumnaSiNoExiste_('Proyectos', 'VentaId');
+}
+
+/**
+ * Migración de un solo uso: agrega la columna "Titulo" a
+ * ProyectoEntregables, para separar un título corto del detalle
+ * (que sigue viviendo en la columna "Descripcion").
+ */
+function agregarTituloAEntregables() {
+  agregarColumnaSiNoExiste_('ProyectoEntregables', 'Titulo');
 }
