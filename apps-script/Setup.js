@@ -29,7 +29,7 @@ function configurarProyecto() {
     'CotizacionItems': ['Id', 'CotizacionId', 'Descripcion', 'Cantidad', 'PrecioUnitario', 'Subtotal'],
     'Ventas': ['Id', 'ClienteId', 'CotizacionId', 'Concepto', 'Monto', 'Fecha', 'Estado', 'MetodoPago', 'Notas', 'FechaCreacion'],
     'Proyectos': ['Id', 'ClienteId', 'Nombre', 'Descripcion', 'Stack', 'FechaInicio', 'FechaEntrega', 'Estado', 'UrlRepo', 'UrlDemo', 'Notas', 'FechaCreacion'],
-    'Suscripciones': ['Id', 'ClienteId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
+    'Suscripciones': ['Id', 'ClienteId', 'ProyectoId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
     'Config': ['Clave', 'Valor']
   };
 
@@ -78,9 +78,26 @@ function agregarModuloSuscripciones() {
     Logger.log('La pestaña Suscripciones ya existe, no se hizo ningún cambio.');
     return;
   }
-  var headers = ['Id', 'ClienteId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'];
+  var headers = ['Id', 'ClienteId', 'ProyectoId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'];
   var sheet = ss.insertSheet('Suscripciones');
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   sheet.setFrozenRows(1);
   Logger.log('Listo. Pestaña Suscripciones creada en: ' + ss.getUrl());
+}
+
+/**
+ * Migración de un solo uso: agrega la columna "ProyectoId" a la pestaña
+ * Suscripciones para poder vincular cada suscripción a uno de tus
+ * proyectos (útil para las apps multi-tenant que vendes por licencia).
+ * No afecta filas existentes. Segura de ejecutar más de una vez.
+ */
+function agregarProyectoASuscripciones() {
+  var sheet = sheet_('Suscripciones');
+  var headers = headers_(sheet);
+  if (headers.indexOf('ProyectoId') !== -1) {
+    Logger.log('La columna ProyectoId ya existe, no se hizo ningún cambio.');
+    return;
+  }
+  sheet.getRange(1, headers.length + 1).setValue('ProyectoId');
+  Logger.log('Listo. Columna ProyectoId agregada a Suscripciones.');
 }

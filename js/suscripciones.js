@@ -1,5 +1,6 @@
 let _cacheSuscripciones = [];
 let _cacheSuscripcionesClientes = [];
+let _cacheSuscripcionesProyectos = [];
 
 const BADGES_SUSCRIPCION = { Activa: 'badge-verde', Cancelada: 'badge-gris' };
 
@@ -18,31 +19,36 @@ async function renderSuscripciones(contenedor) {
 async function cargarTablaSuscripciones(contenedor) {
   const destino = qs('#tabla-suscripciones', contenedor || document);
   try {
-    const [suscripciones, clientes, config] = await Promise.all([
+    const [suscripciones, clientes, proyectos, config] = await Promise.all([
       llamarApi('suscripciones.listar'),
       obtenerClientesParaSelect(),
+      obtenerProyectosParaSelect(),
       llamarApi('config.obtener')
     ]);
     _cacheSuscripciones = suscripciones;
     _cacheSuscripcionesClientes = clientes;
+    _cacheSuscripcionesProyectos = proyectos;
     _monedaActual = config.Moneda || '$';
     if (!suscripciones.length) {
       destino.innerHTML = '<div class="vacio">Todavía no tienes suscripciones registradas.</div>';
       return;
     }
     const clientePorId = Object.fromEntries(clientes.map((c) => [c.Id, c]));
+    const proyectoPorId = Object.fromEntries(proyectos.map((p) => [p.Id, p]));
     destino.innerHTML = `
       <table class="tabla">
-        <thead><tr><th>Cliente</th><th>Producto</th><th>Monto</th><th>Frecuencia</th><th>Próx. vencimiento</th><th>Estado</th><th></th></tr></thead>
+        <thead><tr><th>Cliente</th><th>Producto</th><th>Proyecto</th><th>Monto</th><th>Frecuencia</th><th>Próx. vencimiento</th><th>Estado</th><th></th></tr></thead>
         <tbody>
           ${suscripciones.map((s) => {
             const cliente = clientePorId[s.ClienteId];
+            const proyecto = proyectoPorId[s.ProyectoId];
             const dias = diasHastaFecha(s.ProximoVencimiento);
             const vencida = s.Estado === 'Activa' && dias < 0;
             return `
               <tr>
                 <td>${cliente ? esc(cliente.Nombre) : '—'}</td>
                 <td>${esc(s.Producto)}</td>
+                <td>${proyecto ? esc(proyecto.Nombre) : '—'}</td>
                 <td>${formatMoney(s.Monto, _monedaActual)}</td>
                 <td>${esc(s.Frecuencia)}</td>
                 <td>${formatDate(s.ProximoVencimiento)} ${vencida ? '<span class="badge badge-rojo">Vencida</span>' : ''}</td>
@@ -77,6 +83,7 @@ async function cargarTablaSuscripciones(contenedor) {
 
 async function abrirFormularioSuscripcion(suscripcion) {
   const clientes = _cacheSuscripcionesClientes.length ? _cacheSuscripcionesClientes : await obtenerClientesParaSelect();
+  const proyectos = _cacheSuscripcionesProyectos.length ? _cacheSuscripcionesProyectos : await obtenerProyectosParaSelect();
   const editando = !!suscripcion;
   abrirModal(`
     <h3>${editando ? 'Editar suscripción' : 'Nueva suscripción'}</h3>
@@ -89,7 +96,14 @@ async function abrirFormularioSuscripcion(suscripcion) {
             ${clientes.map((c) => `<option value="${esc(c.Id)}" ${editando && suscripcion.ClienteId === c.Id ? 'selected' : ''}>${esc(c.Nombre)}</option>`).join('')}
           </select>
         </div>
-        <div class="campo full"><label>Producto / servicio *</label><input name="Producto" required placeholder="Ej: Licencia IAS Tienda" value="${esc(editando && suscripcion.Producto)}"></div>
+        <div class="campo full">
+          <label>Proyecto (opcional)</label>
+          <select name="ProyectoId" id="select-proyecto-suscripcion">
+            <option value="">— Ninguno / no aplica —</option>
+            ${proyectos.map((p) => `<option value="${esc(p.Id)}" ${editando && suscripcion.ProyectoId === p.Id ? 'selected' : ''}>${esc(p.Nombre)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="campo full"><label>Producto / servicio *</label><input name="Producto" id="input-producto-suscripcion" required placeholder="Ej: Licencia IAS Tienda" value="${esc(editando && suscripcion.Producto)}"></div>
         <div class="campo"><label>Monto *</label><input type="number" step="0.01" min="0" name="Monto" required value="${esc(editando ? suscripcion.Monto : '')}"></div>
         <div class="campo"><label>Frecuencia *</label>
           <select name="Frecuencia" required>
@@ -106,6 +120,14 @@ async function abrirFormularioSuscripcion(suscripcion) {
       </div>
     </form>
   `);
+
+  qs('#select-proyecto-suscripcion').addEventListener('change', (e) => {
+    const campoProducto = qs('#input-producto-suscripcion');
+    if (campoProducto.value.trim()) return;
+    const proyecto = proyectos.find((p) => p.Id === e.target.value);
+    if (proyecto) campoProducto.value = 'Licencia ' + proyecto.Nombre;
+  });
+
   qs('#form-suscripcion').addEventListener('submit', (e) => guardarSuscripcion(e, editando ? suscripcion.Id : null));
 }
 

@@ -31,6 +31,7 @@ function suscripcionesCrear(datos) {
     var registro = {
       Id: newId(),
       ClienteId: datos.ClienteId,
+      ProyectoId: datos.ProyectoId || '',
       Producto: datos.Producto,
       Monto: round2_(datos.Monto),
       Frecuencia: datos.Frecuencia,

@@ -129,3 +129,11 @@ async function eliminarProyecto(id) {
     mostrarToast(err.message, 'error');
   }
 }
+
+async function obtenerProyectosParaSelect() {
+  try {
+    return await llamarApi('proyectos.listar');
+  } catch (e) {
+    return [];
+  }
+}
