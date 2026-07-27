@@ -13,12 +13,16 @@ function cotizacionesGenerarPdf(cotizacionId) {
   var body = doc.getBody();
   body.setMarginTop(40).setMarginBottom(40).setMarginLeft(45).setMarginRight(45);
 
-  agregarEncabezado_(body, cot, config, moneda);
+  agregarEncabezadoDocumento_(body, config, 'COTIZACIÓN', [
+    ['Folio', cot.Folio],
+    ['Fecha', formatearFecha_(cot.Fecha)],
+    ['Válido hasta', formatearFecha_(sumarDias_(cot.Fecha, cot.ValidezDias))]
+  ]);
   agregarBarraSeccion_(body, 'CLIENTE');
   agregarDatosCliente_(body, cliente);
   body.appendParagraph(' ').setFontSize(6);
-  agregarTablaItems_(body, cot, moneda);
-  agregarTotales_(body, cot, moneda);
+  agregarTablaItems_(body, cot.Items, moneda);
+  agregarTotalesCotizacion_(body, cot, moneda);
 
   if (cot.Notas) {
     body.appendParagraph(' ').setFontSize(8);
@@ -26,24 +30,152 @@ function cotizacionesGenerarPdf(cotizacionId) {
     pNotas.editAsText().setFontSize(9).setItalic(true).setForegroundColor('#555555');
   }
 
-  doc.saveAndClose();
-
-  var archivo = DriveApp.getFileById(doc.getId());
-  var pdfBlob = archivo.getAs('application/pdf');
-  pdfBlob.setName('Cotizacion-' + cot.Folio + '.pdf');
-  archivo.setTrashed(true);
-
-  return {
-    nombreArchivo: pdfBlob.getName(),
-    base64: Utilities.base64Encode(pdfBlob.getBytes())
-  };
+  return finalizarPdf_(doc, 'Cotizacion-' + cot.Folio + '.pdf');
 }
 
-function agregarEncabezado_(body, cot, config, moneda) {
+function ventasGenerarFacturaPdf(ventaId) {
+  var venta = sheetToObjects(sheet_('Ventas')).filter(function (v) { return v.Id === ventaId; })[0];
+  if (!venta) throw new Error('Venta no encontrada.');
+  if (venta.Estado !== 'Pagado') {
+    throw new Error('Solo se puede generar la factura cuando la venta esté completamente pagada.');
+  }
+  if (!venta.FacturaFolio) {
+    venta.FacturaFolio = withLock(function () { return asignarFolioFactura_(ventaId); });
+  }
+
+  var cliente = sheetToObjects(sheet_('Clientes')).filter(function (c) { return c.Id === venta.ClienteId; })[0] || {};
+  var config = configObtener();
+  var moneda = config.Moneda || '$';
+
+  var doc = DocumentApp.create('Factura-' + venta.FacturaFolio + '-temp');
+  var body = doc.getBody();
+  body.setMarginTop(40).setMarginBottom(40).setMarginLeft(45).setMarginRight(45);
+
+  agregarEncabezadoDocumento_(body, config, 'FACTURA', [
+    ['Folio', venta.FacturaFolio],
+    ['Fecha', formatearFecha_(venta.Fecha)],
+    ['Estado', 'PAGADO']
+  ]);
+  agregarBarraSeccion_(body, 'CLIENTE');
+  agregarDatosCliente_(body, cliente);
+  body.appendParagraph(' ').setFontSize(6);
+  agregarTablaItems_(body, [{
+    Descripcion: venta.Concepto,
+    Cantidad: 1,
+    PrecioUnitario: venta.Monto,
+    Subtotal: venta.Monto
+  }], moneda);
+
+  body.appendParagraph(' ').setFontSize(6);
+  agregarLineaTotal_(body, 'TOTAL PAGADO', moneda + Number(venta.Monto).toFixed(2), true);
+
+  return finalizarPdf_(doc, 'Factura-' + venta.FacturaFolio + '.pdf');
+}
+
+function ventasGenerarReciboPdf(abonoId) {
+  var abono = sheetToObjects(sheet_('Abonos')).filter(function (a) { return a.Id === abonoId; })[0];
+  if (!abono) throw new Error('Abono no encontrado.');
+  var venta = sheetToObjects(sheet_('Ventas')).filter(function (v) { return v.Id === abono.VentaId; })[0];
+  if (!venta) throw new Error('Venta no encontrada para este abono.');
+  var cliente = sheetToObjects(sheet_('Clientes')).filter(function (c) { return c.Id === venta.ClienteId; })[0] || {};
+  var config = configObtener();
+  var moneda = config.Moneda || '$';
+
+  var doc = DocumentApp.create('Recibo-' + abono.Folio + '-temp');
+  var body = doc.getBody();
+  body.setMarginTop(40).setMarginBottom(40).setMarginLeft(45).setMarginRight(45);
+
+  agregarEncabezadoDocumento_(body, config, 'RECIBO', [
+    ['Folio', abono.Folio],
+    ['Fecha', formatearFecha_(abono.Fecha)]
+  ]);
+  agregarBarraSeccion_(body, 'CLIENTE');
+  agregarDatosCliente_(body, cliente);
+  body.appendParagraph(' ').setFontSize(8);
+
+  var pRecibi = body.appendParagraph(
+    'Recibí de ' + (cliente.Nombre || '—') + ' la suma de ' + moneda + Number(abono.Monto).toFixed(2) + ', por concepto de: ' + venta.Concepto + '.'
+  );
+  pRecibi.editAsText().setFontSize(11).setForegroundColor('#1a2233');
+
+  var saldoRestante = round2_(Number(venta.Monto) - Number(venta.MontoPagado || 0));
+  body.appendParagraph(' ').setFontSize(8);
+  if (saldoRestante > 0) {
+    agregarLineaTotal_(body, 'Saldo pendiente', moneda + saldoRestante.toFixed(2), false);
+  } else {
+    var pCompleto = body.appendParagraph('PAGADO EN SU TOTALIDAD');
+    pCompleto.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
+    pCompleto.editAsText().setBold(true).setFontSize(13).setForegroundColor(COLOR_MARCA);
+  }
+
+  return finalizarPdf_(doc, 'Recibo-' + abono.Folio + '.pdf');
+}
+
+function proyectosGenerarPdf(proyectoId) {
+  var proyecto = proyectosObtener(proyectoId);
+  var cliente = sheetToObjects(sheet_('Clientes')).filter(function (c) { return c.Id === proyecto.ClienteId; })[0] || {};
+  var config = configObtener();
+
+  var doc = DocumentApp.create('Alcance-' + proyecto.Nombre + '-temp');
+  var body = doc.getBody();
+  body.setMarginTop(40).setMarginBottom(40).setMarginLeft(45).setMarginRight(45);
+
+  agregarEncabezadoDocumento_(body, config, 'ALCANCE DEL PROYECTO', [
+    ['Proyecto', proyecto.Nombre],
+    ['Fecha', formatearFecha_(nowIso())]
+  ]);
+
+  agregarBarraSeccion_(body, 'CLIENTE');
+  agregarDatosCliente_(body, cliente);
+  body.appendParagraph(' ').setFontSize(6);
+
+  agregarBarraSeccion_(body, 'DETALLES DEL PROYECTO');
+  body.appendParagraph(' ').setFontSize(4);
+  [
+    ['Stack / tecnologías', proyecto.Stack],
+    ['Fecha de inicio', proyecto.FechaInicio ? formatearFecha_(proyecto.FechaInicio) : ''],
+    ['Fecha de entrega', proyecto.FechaEntrega ? formatearFecha_(proyecto.FechaEntrega) : ''],
+    ['Estado', proyecto.Estado]
+  ].forEach(function (par) {
+    if (par[1]) lineaEtiquetaValor_(body, par[0], par[1]);
+  });
+
+  if (proyecto.Descripcion) {
+    body.appendParagraph(' ').setFontSize(6);
+    agregarBarraSeccion_(body, 'DESCRIPCIÓN');
+    body.appendParagraph(' ').setFontSize(4);
+    body.appendParagraph(proyecto.Descripcion).editAsText().setFontSize(10).setForegroundColor('#333333');
+  }
+
+  if (proyecto.Alcance) {
+    body.appendParagraph(' ').setFontSize(6);
+    agregarBarraSeccion_(body, 'ALCANCE');
+    body.appendParagraph(' ').setFontSize(4);
+    body.appendParagraph(proyecto.Alcance).editAsText().setFontSize(10).setForegroundColor('#333333');
+  }
+
+  if (proyecto.Entregables && proyecto.Entregables.length) {
+    body.appendParagraph(' ').setFontSize(6);
+    agregarBarraSeccion_(body, 'ENTREGABLES');
+    body.appendParagraph(' ').setFontSize(4);
+    agregarTablaEntregables_(body, proyecto.Entregables);
+  }
+
+  if (proyecto.Notas) {
+    body.appendParagraph(' ').setFontSize(8);
+    body.appendParagraph('Notas: ' + proyecto.Notas).editAsText().setFontSize(9).setItalic(true).setForegroundColor('#555555');
+  }
+
+  return finalizarPdf_(doc, 'Alcance-' + proyecto.Nombre + '.pdf');
+}
+
+/* ---------- Helpers compartidos de armado del documento ---------- */
+
+function agregarEncabezadoDocumento_(body, config, titulo, lineasMeta) {
   insertarLogoCentrado_(body, config.LogoUrl);
   body.appendParagraph(' ').setFontSize(6);
 
-  // Fila 1: nombre de la empresa (izq) alineado con "COTIZACIÓN" (der).
+  // Fila 1: nombre de la empresa (izq) alineado con el título del documento (der).
   var filaTitulo = body.appendTable([['', '']]);
   filaTitulo.setBorderWidth(0);
   filaTitulo.setColumnWidth(0, 320);
@@ -57,10 +189,10 @@ function agregarEncabezado_(body, cot, config, moneda) {
   var pTitulo = filaTitulo.getCell(0, 1).getChild(0).asParagraph();
   pTitulo.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
   var textoTitulo = pTitulo.editAsText();
-  textoTitulo.setText('COTIZACIÓN');
+  textoTitulo.setText(titulo);
   textoTitulo.setBold(true).setFontSize(16).setForegroundColor(COLOR_MARCA);
 
-  // Fila 2: tus datos (izq) + folio/fecha/validez (der).
+  // Fila 2: tus datos (izq) + metadata del documento (der).
   var filaDatos = body.appendTable([['', '']]);
   filaDatos.setBorderWidth(0);
   filaDatos.setColumnWidth(0, 320);
@@ -86,9 +218,9 @@ function agregarEncabezado_(body, cot, config, moneda) {
   var textoVacio = celdaMeta.getChild(0).asParagraph().editAsText();
   textoVacio.setText(' ');
   textoVacio.setFontSize(4);
-  lineaEtiquetaValor_(celdaMeta, 'Folio', cot.Folio, DocumentApp.HorizontalAlignment.RIGHT);
-  lineaEtiquetaValor_(celdaMeta, 'Fecha', formatearFecha_(cot.Fecha), DocumentApp.HorizontalAlignment.RIGHT);
-  lineaEtiquetaValor_(celdaMeta, 'Válido hasta', formatearFecha_(sumarDias_(cot.Fecha, cot.ValidezDias)), DocumentApp.HorizontalAlignment.RIGHT);
+  lineasMeta.forEach(function (par) {
+    lineaEtiquetaValor_(celdaMeta, par[0], par[1], DocumentApp.HorizontalAlignment.RIGHT);
+  });
 }
 
 function lineaEtiquetaValor_(contenedor, etiqueta, valor, alineacion) {
@@ -125,9 +257,9 @@ function agregarDatosCliente_(body, cliente) {
   });
 }
 
-function agregarTablaItems_(body, cot, moneda) {
+function agregarTablaItems_(body, items, moneda) {
   var filas = [['Descripción', 'Cant.', 'Precio unit.', 'Subtotal']];
-  cot.Items.forEach(function (it) {
+  items.forEach(function (it) {
     filas.push([
       String(it.Descripcion),
       String(it.Cantidad),
@@ -166,7 +298,39 @@ function agregarTablaItems_(body, cot, moneda) {
   }
 }
 
-function agregarTotales_(body, cot, moneda) {
+function agregarTablaEntregables_(body, entregables) {
+  var filas = [['Entregable', 'Estado']];
+  entregables.forEach(function (e) {
+    filas.push([String(e.Descripcion), String(e.Estado || 'Pendiente')]);
+  });
+
+  var tabla = body.appendTable(filas);
+  tabla.setBorderWidth(0.75);
+  tabla.setBorderColor(COLOR_BORDE_TABLA);
+  tabla.setColumnWidth(0, 400);
+  tabla.setColumnWidth(1, 122);
+
+  for (var f = 0; f < tabla.getNumRows(); f++) {
+    var fila = tabla.getRow(f);
+    var esEncabezado = f === 0;
+    for (var c = 0; c < fila.getNumCells(); c++) {
+      var celda = fila.getCell(c);
+      celda.setPaddingTop(5).setPaddingBottom(5).setPaddingLeft(7).setPaddingRight(7);
+      if (esEncabezado) {
+        celda.setBackgroundColor(COLOR_MARCA);
+        celda.editAsText().setBold(true).setForegroundColor('#ffffff').setFontSize(9.5);
+      } else {
+        celda.setBackgroundColor(f % 2 === 0 ? COLOR_FILA_PAR : '#ffffff');
+        celda.editAsText().setFontSize(9.5).setForegroundColor('#1a2233');
+      }
+      if (c === 1) {
+        celda.getChild(0).asParagraph().setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      }
+    }
+  }
+}
+
+function agregarTotalesCotizacion_(body, cot, moneda) {
   body.appendParagraph(' ').setFontSize(6);
   agregarLineaTotal_(body, 'Subtotal', moneda + Number(cot.Subtotal).toFixed(2), false);
   if (Number(cot.DescuentoPct) > 0) agregarLineaTotal_(body, 'Descuento', cot.DescuentoPct + '%', false);
@@ -198,8 +362,20 @@ function insertarLogoCentrado_(body, logoUrl) {
       imagen.setHeight(Math.round(85 * proporcion));
     }
   } catch (e) {
-    // Si el logo no carga, la cotización se genera igual sin logo.
+    // Si el logo no carga, el documento se genera igual sin logo.
   }
+}
+
+function finalizarPdf_(doc, nombreArchivo) {
+  doc.saveAndClose();
+  var archivo = DriveApp.getFileById(doc.getId());
+  var pdfBlob = archivo.getAs('application/pdf');
+  pdfBlob.setName(nombreArchivo);
+  archivo.setTrashed(true);
+  return {
+    nombreArchivo: pdfBlob.getName(),
+    base64: Utilities.base64Encode(pdfBlob.getBytes())
+  };
 }
 
 function formatearFecha_(fechaIso) {

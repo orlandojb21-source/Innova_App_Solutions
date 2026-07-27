@@ -1,6 +1,7 @@
 let _cacheProyectos = [];
 
 const BADGES_PROYECTO = { EnProgreso: 'badge-azul', Completado: 'badge-verde', Pausado: 'badge-gris' };
+const BADGES_ENTREGABLE = { Pendiente: 'badge-naranja', Entregado: 'badge-verde' };
 
 async function renderProyectos(contenedor) {
   contenedor.innerHTML = `
@@ -40,6 +41,7 @@ async function cargarListaProyectos(contenedor) {
                 ${p.UrlDemo ? `<a href="${esc(p.UrlDemo)}" target="_blank" rel="noopener">Demo</a>` : ''}
               </div>
               <div class="acciones-fila" style="margin-top:12px">
+                <button class="btn btn-secundario btn-chico" data-descargar-proyecto="${esc(p.Id)}">Descargar PDF</button>
                 <button class="btn btn-secundario btn-chico" data-editar-proyecto="${esc(p.Id)}">Editar</button>
                 <button class="btn btn-peligro btn-chico" data-eliminar-proyecto="${esc(p.Id)}">Eliminar</button>
               </div>
@@ -49,22 +51,48 @@ async function cargarListaProyectos(contenedor) {
       </div>
     `;
     qsa('[data-editar-proyecto]', destino).forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const proyecto = _cacheProyectos.find((p) => p.Id === btn.dataset.editarProyecto);
-        abrirFormularioProyecto(proyecto, clientes);
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try {
+          const proyecto = await llamarApi('proyectos.obtener', { Id: btn.dataset.editarProyecto });
+          abrirFormularioProyecto(proyecto, clientes);
+        } catch (e) {
+          mostrarToast(e.message, 'error');
+        } finally {
+          btn.disabled = false;
+        }
       });
     });
     qsa('[data-eliminar-proyecto]', destino).forEach((btn) => {
       btn.addEventListener('click', () => eliminarProyecto(btn.dataset.eliminarProyecto));
+    });
+    qsa('[data-descargar-proyecto]', destino).forEach((btn) => {
+      btn.addEventListener('click', () => descargarPdfProyecto(btn.dataset.descargarProyecto, btn));
     });
   } catch (e) {
     destino.innerHTML = `<div class="vacio">${esc(e.message)}</div>`;
   }
 }
 
+function filaEntregableHtml(entregable) {
+  const e = entregable || { Descripcion: '', Estado: 'Pendiente' };
+  return `
+    <div class="fila-entregable" data-fila-entregable>
+      <input type="text" class="entregable-desc" placeholder="Descripción del entregable" value="${esc(e.Descripcion)}">
+      <select class="entregable-estado">
+        <option value="Pendiente" ${e.Estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+        <option value="Entregado" ${e.Estado === 'Entregado' ? 'selected' : ''}>Entregado</option>
+      </select>
+      <button type="button" class="quitar-item" title="Quitar entregable">×</button>
+    </div>
+  `;
+}
+
 async function abrirFormularioProyecto(proyecto, clientesPrecargados) {
   const clientes = clientesPrecargados || await obtenerClientesParaSelect();
   const editando = !!proyecto;
+  const entregables = (editando && proyecto.Entregables && proyecto.Entregables.length) ? proyecto.Entregables : [{ Descripcion: '', Estado: 'Pendiente' }];
+
   abrirModal(`
     <h3>${editando ? 'Editar proyecto' : 'Nuevo proyecto'}</h3>
     <form id="form-proyecto">
@@ -88,21 +116,59 @@ async function abrirFormularioProyecto(proyecto, clientesPrecargados) {
         <div class="campo"><label>URL repositorio</label><input name="UrlRepo" value="${esc(proyecto && proyecto.UrlRepo)}"></div>
         <div class="campo"><label>URL demo</label><input name="UrlDemo" value="${esc(proyecto && proyecto.UrlDemo)}"></div>
         <div class="campo full"><label>Descripción</label><textarea name="Descripcion">${esc(proyecto && proyecto.Descripcion)}</textarea></div>
-        <div class="campo full"><label>Notas</label><textarea name="Notas">${esc(proyecto && proyecto.Notas)}</textarea></div>
+        <div class="campo full"><label>Alcance</label><textarea name="Alcance" placeholder="Qué incluye el proyecto">${esc(proyecto && proyecto.Alcance)}</textarea></div>
       </div>
+
+      <div class="campo full" style="margin-top:14px">
+        <label>Entregables</label>
+        <div class="items-cotizacion" id="entregables-container">
+          ${entregables.map(filaEntregableHtml).join('')}
+        </div>
+        <button type="button" class="btn btn-secundario btn-chico" id="btn-agregar-entregable">+ Agregar entregable</button>
+      </div>
+
+      <div class="campo full" style="margin-top:14px"><label>Notas</label><textarea name="Notas">${esc(proyecto && proyecto.Notas)}</textarea></div>
+
       <div class="modal-acciones">
         <button type="button" class="btn btn-secundario" data-cerrar-modal>Cancelar</button>
         <button type="submit" class="btn btn-primario">Guardar</button>
       </div>
     </form>
   `);
-  qs('#form-proyecto').addEventListener('submit', (e) => guardarProyecto(e, proyecto && proyecto.Id));
+
+  const modal = qs('#modal-contenido');
+  qs('#btn-agregar-entregable', modal).addEventListener('click', () => {
+    qs('#entregables-container', modal).insertAdjacentHTML('beforeend', filaEntregableHtml());
+  });
+  modal.addEventListener('click', (e) => {
+    if (e.target.matches('.quitar-item')) {
+      const filas = qsa('[data-fila-entregable]', modal);
+      if (filas.length > 1) {
+        e.target.closest('[data-fila-entregable]').remove();
+      } else {
+        e.target.closest('[data-fila-entregable]').querySelector('.entregable-desc').value = '';
+      }
+    }
+  });
+
+  qs('#form-proyecto').addEventListener('submit', (e) => guardarProyecto(e, editando ? proyecto.Id : null));
+}
+
+function leerEntregablesDelFormulario(modal) {
+  return qsa('[data-fila-entregable]', modal)
+    .map((fila) => ({
+      Descripcion: qs('.entregable-desc', fila).value.trim(),
+      Estado: qs('.entregable-estado', fila).value
+    }))
+    .filter((e) => e.Descripcion);
 }
 
 async function guardarProyecto(e, id) {
   e.preventDefault();
-  const btn = e.submitter || qs('button[type="submit"]', e.target);
+  const modal = qs('#modal-contenido');
+  const btn = e.submitter || qs('button[type="submit"]', modal);
   const datos = Object.fromEntries(new FormData(e.target).entries());
+  datos.Entregables = leerEntregablesDelFormulario(modal);
   btn.disabled = true;
   try {
     if (id) {
@@ -127,6 +193,19 @@ async function eliminarProyecto(id) {
     cargarListaProyectos();
   } catch (err) {
     mostrarToast(err.message, 'error');
+  }
+}
+
+async function descargarPdfProyecto(id, btn) {
+  btn.disabled = true;
+  try {
+    const pdf = await llamarApi('proyectos.generarPdf', { Id: id });
+    descargarBase64(pdf.nombreArchivo, pdf.base64, 'application/pdf');
+    mostrarToast('PDF generado.', 'exito');
+  } catch (e) {
+    mostrarToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
   }
 }
 

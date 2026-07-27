@@ -328,6 +328,10 @@ table.tabla tr:hover td { background: var(--bg); }
 .fila-item .subtotal-item { font-size: 13.5px; text-align: right; color: var(--texto-sub); }
 .quitar-item { background: transparent; border: none; color: var(--rojo); font-size: 20px; line-height: 1; padding: 8px; }
 
+.fila-entregable { display: grid; grid-template-columns: 1fr 130px 30px; gap: 8px; align-items: center; }
+.fila-entregable input { padding: 8px 9px; border-radius: 7px; font-size: 16px; }
+.fila-entregable select { padding: 8px 9px; border-radius: 7px; font-size: 13.5px; }
+
 .resumen-totales { margin-top: 6px; text-align: right; font-size: 13.5px; color: var(--texto-sub); }
 .resumen-totales .total { font-size: 17px; font-weight: 700; color: var(--titulo); }
 
@@ -419,6 +423,7 @@ table.tabla tr:hover td { background: var(--bg); }
 
   .fila-item { grid-template-columns: 1fr 50px 78px 78px 26px; gap: 5px; font-size: 12.5px; }
   .fila-item input { padding: 7px 6px; }
+  .fila-entregable { grid-template-columns: 1fr 100px 24px; gap: 5px; }
 
   .toast-container { left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom)); }
 

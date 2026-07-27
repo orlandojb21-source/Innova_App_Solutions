@@ -66,7 +66,7 @@ function pintarTablaVentas(filtroEstado, contenedor) {
               <td>${formatMoney(saldo, _monedaActual)}</td>
               <td>${badgeEstado(v.Estado, BADGES_VENTA)}</td>
               <td class="acciones-fila">
-                ${v.Estado !== 'Pagado' ? `<button class="btn btn-primario btn-chico" data-registrar-abono="${esc(v.Id)}">Registrar abono</button>` : ''}
+                ${v.Estado !== 'Pagado' ? `<button class="btn btn-primario btn-chico" data-registrar-abono="${esc(v.Id)}">Registrar abono</button>` : `<button class="btn btn-secundario btn-chico" data-descargar-factura="${esc(v.Id)}">Descargar factura</button>`}
                 <button class="btn btn-secundario btn-chico" data-editar-venta="${esc(v.Id)}">Editar</button>
                 <button class="btn btn-peligro btn-chico" data-eliminar-venta="${esc(v.Id)}">Eliminar</button>
               </td>
@@ -81,6 +81,9 @@ function pintarTablaVentas(filtroEstado, contenedor) {
       const venta = _cacheVentas.find((v) => v.Id === btn.dataset.registrarAbono);
       abrirModalAbono(venta);
     });
+  });
+  qsa('[data-descargar-factura]', destino).forEach((btn) => {
+    btn.addEventListener('click', () => descargarFacturaVenta(btn.dataset.descargarFactura, btn));
   });
   qsa('[data-editar-venta]', destino).forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -162,15 +165,36 @@ function abrirModalAbono(venta) {
     const monto = Number(new FormData(e.target).get('MontoAbono'));
     btn.disabled = true;
     try {
-      await llamarApi('ventas.registrarAbono', { Id: venta.Id, Monto: monto });
+      const resultado = await llamarApi('ventas.registrarAbono', { Id: venta.Id, Monto: monto });
       cerrarModal();
       mostrarToast('Abono registrado.', 'exito');
       cargarTablaVentas();
+      if (resultado.AbonoId) {
+        try {
+          const recibo = await llamarApi('ventas.generarRecibo', { AbonoId: resultado.AbonoId });
+          descargarBase64(recibo.nombreArchivo, recibo.base64, 'application/pdf');
+        } catch (errRecibo) {
+          mostrarToast('El abono se registró, pero no se pudo generar el recibo: ' + errRecibo.message, 'error');
+        }
+      }
     } catch (err) {
       mostrarToast(err.message, 'error');
       btn.disabled = false;
     }
   });
+}
+
+async function descargarFacturaVenta(id, btn) {
+  btn.disabled = true;
+  try {
+    const factura = await llamarApi('ventas.generarFactura', { Id: id });
+    descargarBase64(factura.nombreArchivo, factura.base64, 'application/pdf');
+    mostrarToast('Factura generada.', 'exito');
+  } catch (e) {
+    mostrarToast(e.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 async function eliminarVenta(id) {

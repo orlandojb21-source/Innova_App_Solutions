@@ -87,8 +87,37 @@ function ventasRegistrarAbono(id, monto) {
 
     var nuevoEstado = calcularEstadoVenta_(montoTotal, nuevoMontoPagado);
     updateRowById(sheet, id, { MontoPagado: nuevoMontoPagado, Estado: nuevoEstado });
-    return { Id: id, MontoPagado: nuevoMontoPagado, Estado: nuevoEstado };
+
+    var abonoId = newId();
+    appendRow(sheet_('Abonos'), {
+      Id: abonoId,
+      VentaId: id,
+      Folio: siguienteFolioAbono_(),
+      Monto: round2_(monto),
+      Fecha: nowIso(),
+      FechaCreacion: nowIso()
+    });
+
+    return { Id: id, MontoPagado: nuevoMontoPagado, Estado: nuevoEstado, AbonoId: abonoId };
   });
+}
+
+function siguienteFolioAbono_() {
+  var anio = new Date().getFullYear();
+  var prefijo = 'REC-' + anio + '-';
+  var abonos = sheetToObjects(sheet_('Abonos'));
+  var delAnio = abonos.filter(function (a) { return String(a.Folio || '').indexOf(prefijo) === 0; });
+  return prefijo + ('0000' + (delAnio.length + 1)).slice(-4);
+}
+
+function asignarFolioFactura_(ventaId) {
+  var anio = new Date().getFullYear();
+  var prefijo = 'FACT-' + anio + '-';
+  var ventas = sheetToObjects(sheet_('Ventas'));
+  var delAnio = ventas.filter(function (v) { return String(v.FacturaFolio || '').indexOf(prefijo) === 0; });
+  var folio = prefijo + ('0000' + (delAnio.length + 1)).slice(-4);
+  updateRowById(sheet_('Ventas'), ventaId, { FacturaFolio: folio });
+  return folio;
 }
 
 function ventasCrearDesdeCotizacion(cotizacionId) {

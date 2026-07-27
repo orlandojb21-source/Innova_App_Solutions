@@ -62,15 +62,23 @@ function manejarSolicitud_(e) {
         return okResponse(ventasCrearDesdeCotizacion(datos.CotizacionId));
       case 'ventas.registrarAbono':
         return okResponse(ventasRegistrarAbono(datos.Id, datos.Monto));
+      case 'ventas.generarFactura':
+        return okResponse(ventasGenerarFacturaPdf(datos.Id));
+      case 'ventas.generarRecibo':
+        return okResponse(ventasGenerarReciboPdf(datos.AbonoId));
 
       case 'proyectos.listar':
         return okResponse(proyectosListar());
+      case 'proyectos.obtener':
+        return okResponse(proyectosObtener(datos.Id));
       case 'proyectos.crear':
         return okResponse(proyectosCrear(datos));
       case 'proyectos.actualizar':
         return okResponse(proyectosActualizar(datos.Id, datos.cambios));
       case 'proyectos.eliminar':
         return okResponse(proyectosEliminar(datos.Id));
+      case 'proyectos.generarPdf':
+        return okResponse(proyectosGenerarPdf(datos.Id));
 
       case 'suscripciones.listar':
         return okResponse(suscripcionesListar());
