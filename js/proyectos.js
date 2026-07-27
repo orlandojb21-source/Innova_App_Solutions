@@ -38,6 +38,7 @@ async function cargarListaProyectos(contenedor) {
               <h4>${esc(p.Nombre)}</h4>
               <div class="cliente-proyecto">${cliente ? esc(cliente.Nombre) : 'Sin cliente asociado'}</div>
               ${badgeEstado(p.Estado, BADGES_PROYECTO)}
+              ${p.EntregablesTotal > 0 ? `<div class="cliente-proyecto">Entregables: ${p.EntregablesHechos}/${p.EntregablesTotal}</div>` : ''}
               <div class="acciones-fila" style="margin-top:12px">
                 <button class="btn btn-primario btn-chico" data-ver-proyecto="${esc(p.Id)}">Vista general</button>
               </div>
@@ -80,11 +81,11 @@ async function abrirDetalleProyecto(id, clientes, ventas) {
       ${proyecto.Descripcion ? `<p style="margin-top:12px"><strong>Descripción</strong><br>${esc(proyecto.Descripcion)}</p>` : ''}
       ${proyecto.Alcance ? `<p style="margin-top:12px"><strong>Alcance</strong><br>${esc(proyecto.Alcance)}</p>` : ''}
 
-      ${(proyecto.Entregables && proyecto.Entregables.length) ? `
-        <div style="margin-top:12px">
-          <strong>Entregables</strong>
+      <div style="margin-top:12px">
+        <strong>Entregables${proyecto.Entregables && proyecto.Entregables.length ? ` (${proyecto.Entregables.filter((e) => e.Estado === 'Entregado').length}/${proyecto.Entregables.length})` : ''}</strong>
+        ${(proyecto.Entregables && proyecto.Entregables.length) ? `
           <table class="tabla" style="margin-top:6px">
-            <thead><tr><th>Entregable</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Entregable</th><th></th></tr></thead>
             <tbody>
               ${proyecto.Entregables.map((e) => `
                 <tr>
@@ -92,13 +93,21 @@ async function abrirDetalleProyecto(id, clientes, ventas) {
                     <strong>${esc(e.Titulo)}</strong>
                     ${e.Descripcion ? `<div style="color:var(--texto-sub);font-size:12.5px;margin-top:2px">${esc(e.Descripcion)}</div>` : ''}
                   </td>
-                  <td>${badgeEstado(e.Estado, BADGES_ENTREGABLE)}</td>
+                  <td style="text-align:right">
+                    ${badgeEstado(e.Estado, BADGES_ENTREGABLE)}<br>
+                    <button type="button" class="btn btn-secundario btn-chico" style="margin-top:4px" data-toggle-entregable="${esc(e.Id)}" data-estado-actual="${esc(e.Estado)}">${e.Estado === 'Entregado' ? 'Marcar pendiente' : 'Marcar entregado'}</button>
+                  </td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
-        </div>
-      ` : ''}
+        ` : `<p class="vacio" style="padding:14px 0">Todavía no hay entregables.</p>`}
+
+        <form id="form-entregable-rapido" style="display:flex;gap:8px;margin-top:8px">
+          <input type="text" name="TituloRapido" placeholder="Título del nuevo entregable" style="flex:1" required>
+          <button type="submit" class="btn btn-secundario btn-chico">+ Agregar</button>
+        </form>
+      </div>
 
       ${proyecto.Notas ? `<p style="margin-top:12px"><strong>Notas:</strong> ${esc(proyecto.Notas)}</p>` : ''}
 
@@ -114,9 +123,43 @@ async function abrirDetalleProyecto(id, clientes, ventas) {
     qs('#btn-descargar-proyecto-detalle', modal).addEventListener('click', (e) => descargarPdfProyecto(proyecto.Id, e.target));
     qs('#btn-editar-proyecto-detalle', modal).addEventListener('click', () => abrirFormularioProyecto(proyecto, clientes, ventas));
     qs('#btn-eliminar-proyecto-detalle', modal).addEventListener('click', () => eliminarProyecto(proyecto.Id));
+    qsa('[data-toggle-entregable]', modal).forEach((btn) => {
+      btn.addEventListener('click', () => alternarEstadoEntregable(btn.dataset.toggleEntregable, btn.dataset.estadoActual, proyecto.Id, clientes, ventas));
+    });
+    qs('#form-entregable-rapido', modal).addEventListener('submit', (e) => {
+      e.preventDefault();
+      const input = e.target.elements.TituloRapido;
+      agregarEntregableRapido(proyecto.Id, input.value, clientes, ventas);
+    });
   } catch (e) {
     mostrarToast(e.message, 'error');
     cerrarModal();
+  }
+}
+
+async function alternarEstadoEntregable(entregableId, estadoActual, proyectoId, clientes, ventas) {
+  const nuevoEstado = estadoActual === 'Entregado' ? 'Pendiente' : 'Entregado';
+  try {
+    await llamarApi('proyectos.entregableActualizarEstado', { EntregableId: entregableId, Estado: nuevoEstado });
+    cargarListaProyectos();
+    abrirDetalleProyecto(proyectoId, clientes, ventas);
+  } catch (e) {
+    mostrarToast(e.message, 'error');
+  }
+}
+
+async function agregarEntregableRapido(proyectoId, titulo, clientes, ventas) {
+  if (!titulo || !titulo.trim()) {
+    mostrarToast('Escribe un título para el entregable.', 'error');
+    return;
+  }
+  try {
+    await llamarApi('proyectos.entregableAgregar', { ProyectoId: proyectoId, Titulo: titulo.trim() });
+    mostrarToast('Entregable agregado.', 'exito');
+    cargarListaProyectos();
+    abrirDetalleProyecto(proyectoId, clientes, ventas);
+  } catch (e) {
+    mostrarToast(e.message, 'error');
   }
 }
 

@@ -1,5 +1,17 @@
 function proyectosListar() {
   var proyectos = sheetToObjects(sheet_('Proyectos'));
+  var entregables = sheetToObjects(sheet_('ProyectoEntregables'));
+  var conteos = {};
+  entregables.forEach(function (e) {
+    if (!conteos[e.ProyectoId]) conteos[e.ProyectoId] = { total: 0, entregados: 0 };
+    conteos[e.ProyectoId].total++;
+    if (e.Estado === 'Entregado') conteos[e.ProyectoId].entregados++;
+  });
+  proyectos.forEach(function (p) {
+    var c = conteos[p.Id] || { total: 0, entregados: 0 };
+    p.EntregablesTotal = c.total;
+    p.EntregablesHechos = c.entregados;
+  });
   return proyectos.sort(function (a, b) {
     return new Date(b.FechaCreacion) - new Date(a.FechaCreacion);
   });
@@ -84,5 +96,31 @@ function proyectosEliminar(id) {
     deleteRowById(sheet_('Proyectos'), id);
     reemplazarEntregables_(id, []);
     return { Id: id };
+  });
+}
+
+function entregablesActualizarEstado(entregableId, estado) {
+  return withLock(function () {
+    if (!entregableId) throw new Error('Falta el Id del entregable.');
+    if (['Pendiente', 'Entregado'].indexOf(estado) === -1) throw new Error('Estado inválido: ' + estado);
+    updateRowById(sheet_('ProyectoEntregables'), entregableId, { Estado: estado });
+    return { Id: entregableId, Estado: estado };
+  });
+}
+
+function entregablesAgregar(proyectoId, titulo) {
+  return withLock(function () {
+    if (!proyectoId) throw new Error('Falta el Id del proyecto.');
+    var t = (titulo || '').trim();
+    if (!t) throw new Error('Escribe un título para el entregable.');
+    var registro = {
+      Id: newId(),
+      ProyectoId: proyectoId,
+      Titulo: t,
+      Descripcion: '',
+      Estado: 'Pendiente'
+    };
+    appendRow(sheet_('ProyectoEntregables'), registro);
+    return registro;
   });
 }

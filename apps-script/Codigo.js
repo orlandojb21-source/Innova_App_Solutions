@@ -79,6 +79,10 @@ function manejarSolicitud_(e) {
         return okResponse(proyectosEliminar(datos.Id));
       case 'proyectos.generarPdf':
         return okResponse(proyectosGenerarPdf(datos.Id));
+      case 'proyectos.entregableActualizarEstado':
+        return okResponse(entregablesActualizarEstado(datos.EntregableId, datos.Estado));
+      case 'proyectos.entregableAgregar':
+        return okResponse(entregablesAgregar(datos.ProyectoId, datos.Titulo));
 
       case 'suscripciones.listar':
         return okResponse(suscripcionesListar());
