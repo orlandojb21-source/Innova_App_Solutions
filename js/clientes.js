@@ -61,7 +61,7 @@ function abrirFormularioCliente(cliente) {
       <div class="form-grid">
         <div class="campo full"><label>Nombre *</label><input name="Nombre" required value="${esc(cliente && cliente.Nombre)}"></div>
         <div class="campo"><label>Empresa</label><input name="Empresa" value="${esc(cliente && cliente.Empresa)}"></div>
-        <div class="campo"><label>Teléfono</label><input name="Telefono" value="${esc(cliente && cliente.Telefono)}"></div>
+        <div class="campo"><label>Teléfono</label><input name="Telefono" placeholder="Incluye código de país, ej: +507 6123-4567" value="${esc(cliente && cliente.Telefono)}"></div>
         <div class="campo full"><label>Email</label><input type="email" name="Email" value="${esc(cliente && cliente.Email)}"></div>
         <div class="campo full"><label>Dirección</label><input name="Direccion" value="${esc(cliente && cliente.Direccion)}"></div>
         <div class="campo full"><label>Notas</label><textarea name="Notas">${esc(cliente && cliente.Notas)}</textarea></div>

@@ -74,9 +74,8 @@ function badgeEstado(estado, mapa) {
 
 function enlaceWhatsapp(telefono) {
   if (!telefono) return '';
-  let digitos = String(telefono).replace(/\D/g, '');
+  const digitos = String(telefono).replace(/\D/g, '');
   if (!digitos) return '';
-  if (digitos.length <= 8) digitos = '507' + digitos; // número local de Panamá sin código de país
   return `https://wa.me/${digitos}`;
 }
 

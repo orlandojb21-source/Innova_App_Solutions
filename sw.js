@@ -1,6 +1,6 @@
 // Bump CACHE_NAME en cada deploy que cambie index.html/css/js — si no, los
 // usuarios con la app instalada seguirán viendo la versión vieja cacheada.
-const CACHE_NAME = 'ias-panel-v3';
+const CACHE_NAME = 'ias-panel-v4';
 
 const ARCHIVOS_SHELL = [
   './index.html',
