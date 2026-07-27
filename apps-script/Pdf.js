@@ -102,6 +102,7 @@ function ventasGenerarReciboPdf(abonoId) {
   body.appendParagraph(' ').setFontSize(8);
   if (saldoRestante > 0) {
     agregarLineaTotal_(body, 'Saldo pendiente', moneda + saldoRestante.toFixed(2), false);
+    agregarFormasDePago_(body, config);
   } else {
     var pCompleto = body.appendParagraph('PAGADO EN SU TOTALIDAD');
     pCompleto.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
@@ -109,6 +110,24 @@ function ventasGenerarReciboPdf(abonoId) {
   }
 
   return finalizarPdf_(doc, 'Recibo-' + abono.Folio + '.pdf');
+}
+
+function agregarFormasDePago_(body, config) {
+  var lineas = [];
+  if (config.BancoNombre) {
+    lineas.push('Transferencia a ' + config.BancoNombre + (config.BancoTipoCuenta ? ' (' + config.BancoTipoCuenta + ')' : ''));
+    if (config.BancoTitular) lineas.push('Titular: ' + config.BancoTitular);
+    if (config.BancoNumeroCuenta) lineas.push('Cuenta: ' + config.BancoNumeroCuenta);
+  }
+  if (config.YappyNumero) lineas.push('Yappy: ' + config.YappyNumero);
+  if (!lineas.length) return;
+
+  body.appendParagraph(' ').setFontSize(8);
+  agregarBarraSeccion_(body, 'FORMAS DE PAGO PARA EL SALDO');
+  body.appendParagraph(' ').setFontSize(4);
+  lineas.forEach(function (linea) {
+    body.appendParagraph(linea).editAsText().setFontSize(9.5).setForegroundColor('#444444');
+  });
 }
 
 function proyectosGenerarPdf(proyectoId) {

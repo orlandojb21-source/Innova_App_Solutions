@@ -26,6 +26,15 @@ async function renderAjustes(contenedor) {
             <input name="LogoUrl" value="${esc(config.LogoUrl)}" placeholder="https://innova-app-solutions-swart.vercel.app/img/icon-192.png">
           </div>
         </div>
+
+        <h3 style="margin:20px 0 10px;font-size:15px;color:var(--titulo)">Formas de pago (se muestran al final de los recibos)</h3>
+        <div class="form-grid">
+          <div class="campo"><label>Banco</label><input name="BancoNombre" value="${esc(config.BancoNombre)}" placeholder="Ej: Banco General"></div>
+          <div class="campo"><label>Tipo de cuenta</label><input name="BancoTipoCuenta" value="${esc(config.BancoTipoCuenta)}" placeholder="Ej: Cuenta de ahorro"></div>
+          <div class="campo"><label>Titular de la cuenta</label><input name="BancoTitular" value="${esc(config.BancoTitular)}"></div>
+          <div class="campo"><label>Número de cuenta</label><input name="BancoNumeroCuenta" value="${esc(config.BancoNumeroCuenta)}"></div>
+          <div class="campo"><label>Yappy</label><input name="YappyNumero" value="${esc(config.YappyNumero)}" placeholder="Número de Yappy"></div>
+        </div>
         <div class="modal-acciones" style="justify-content:flex-start">
           <button type="submit" class="btn btn-primario">Guardar ajustes</button>
         </div>
