@@ -43,6 +43,7 @@ function proyectosCrear(datos) {
     var registro = {
       Id: newId(),
       ClienteId: datos.ClienteId || '',
+      VentaId: datos.VentaId || '',
       Nombre: nombre,
       Descripcion: datos.Descripcion || '',
       Alcance: datos.Alcance || '',

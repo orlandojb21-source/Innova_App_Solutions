@@ -114,6 +114,9 @@ function ventasGenerarReciboPdf(abonoId) {
 function proyectosGenerarPdf(proyectoId) {
   var proyecto = proyectosObtener(proyectoId);
   var cliente = sheetToObjects(sheet_('Clientes')).filter(function (c) { return c.Id === proyecto.ClienteId; })[0] || {};
+  var venta = proyecto.VentaId
+    ? sheetToObjects(sheet_('Ventas')).filter(function (v) { return v.Id === proyecto.VentaId; })[0]
+    : null;
   var config = configObtener();
 
   var doc = DocumentApp.create('Alcance-' + proyecto.Nombre + '-temp');
@@ -135,7 +138,8 @@ function proyectosGenerarPdf(proyectoId) {
     ['Stack / tecnologías', proyecto.Stack],
     ['Fecha de inicio', proyecto.FechaInicio ? formatearFecha_(proyecto.FechaInicio) : ''],
     ['Fecha de entrega', proyecto.FechaEntrega ? formatearFecha_(proyecto.FechaEntrega) : ''],
-    ['Estado', proyecto.Estado]
+    ['Estado', proyecto.Estado],
+    ['Facturación', venta ? (venta.FacturaFolio || venta.Concepto) + ' — ' + venta.Estado : '']
   ].forEach(function (par) {
     if (par[1]) lineaEtiquetaValor_(body, par[0], par[1]);
   });

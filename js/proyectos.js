@@ -18,22 +18,29 @@ async function renderProyectos(contenedor) {
 async function cargarListaProyectos(contenedor) {
   const destino = qs('#lista-proyectos', contenedor || document);
   try {
-    const [proyectos, clientes] = await Promise.all([llamarApi('proyectos.listar'), obtenerClientesParaSelect()]);
+    const [proyectos, clientes, ventas] = await Promise.all([
+      llamarApi('proyectos.listar'),
+      obtenerClientesParaSelect(),
+      llamarApi('ventas.listar')
+    ]);
     _cacheProyectos = proyectos;
     if (!proyectos.length) {
       destino.innerHTML = '<div class="vacio">Todavía no has registrado proyectos.</div>';
       return;
     }
     const clientePorId = Object.fromEntries(clientes.map((c) => [c.Id, c]));
+    const ventaPorId = Object.fromEntries(ventas.map((v) => [v.Id, v]));
     destino.innerHTML = `
       <div class="grid-proyectos">
         ${proyectos.map((p) => {
           const cliente = clientePorId[p.ClienteId];
+          const venta = ventaPorId[p.VentaId];
           return `
             <div class="tarjeta-proyecto">
               <h4>${esc(p.Nombre)}</h4>
               <div class="cliente-proyecto">${cliente ? esc(cliente.Nombre) : 'Sin cliente asociado'}</div>
               ${badgeEstado(p.Estado, BADGES_PROYECTO)}
+              ${venta ? `<div class="cliente-proyecto">Facturación: ${esc(venta.FacturaFolio || venta.Concepto)} · ${badgeEstado(venta.Estado, BADGES_VENTA)}</div>` : ''}
               ${p.Descripcion ? `<p class="desc">${esc(p.Descripcion)}</p>` : ''}
               ${p.Stack ? `<div class="stack">${esc(p.Stack)}</div>` : ''}
               <div class="enlaces">
@@ -55,7 +62,7 @@ async function cargarListaProyectos(contenedor) {
         btn.disabled = true;
         try {
           const proyecto = await llamarApi('proyectos.obtener', { Id: btn.dataset.editarProyecto });
-          abrirFormularioProyecto(proyecto, clientes);
+          abrirFormularioProyecto(proyecto, clientes, ventas);
         } catch (e) {
           mostrarToast(e.message, 'error');
         } finally {
@@ -88,8 +95,9 @@ function filaEntregableHtml(entregable) {
   `;
 }
 
-async function abrirFormularioProyecto(proyecto, clientesPrecargados) {
+async function abrirFormularioProyecto(proyecto, clientesPrecargados, ventasPrecargadas) {
   const clientes = clientesPrecargados || await obtenerClientesParaSelect();
+  const ventas = ventasPrecargadas || await llamarApi('ventas.listar').catch(() => []);
   const editando = !!proyecto;
   const entregables = (editando && proyecto.Entregables && proyecto.Entregables.length) ? proyecto.Entregables : [{ Descripcion: '', Estado: 'Pendiente' }];
 
@@ -103,6 +111,13 @@ async function abrirFormularioProyecto(proyecto, clientesPrecargados) {
           <select name="ClienteId">
             <option value="">— Sin cliente asociado —</option>
             ${clientes.map((c) => `<option value="${esc(c.Id)}" ${proyecto && proyecto.ClienteId === c.Id ? 'selected' : ''}>${esc(c.Nombre)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="campo full">
+          <label>Venta / factura vinculada (opcional)</label>
+          <select name="VentaId">
+            <option value="">— Ninguna —</option>
+            ${ventas.map((v) => `<option value="${esc(v.Id)}" ${proyecto && proyecto.VentaId === v.Id ? 'selected' : ''}>${esc(v.Concepto)} — ${formatMoney(v.Monto, _monedaActual)} (${esc(v.Estado)})</option>`).join('')}
           </select>
         </div>
         <div class="campo"><label>Estado</label>

@@ -29,7 +29,7 @@ function configurarProyecto() {
     'CotizacionItems': ['Id', 'CotizacionId', 'Descripcion', 'Cantidad', 'PrecioUnitario', 'Subtotal'],
     'Ventas': ['Id', 'ClienteId', 'CotizacionId', 'Concepto', 'Monto', 'MontoPagado', 'FacturaFolio', 'Fecha', 'Estado', 'MetodoPago', 'Notas', 'FechaCreacion'],
     'Abonos': ['Id', 'VentaId', 'Folio', 'Monto', 'Fecha', 'FechaCreacion'],
-    'Proyectos': ['Id', 'ClienteId', 'Nombre', 'Descripcion', 'Alcance', 'Stack', 'FechaInicio', 'FechaEntrega', 'Estado', 'UrlRepo', 'UrlDemo', 'Notas', 'FechaCreacion'],
+    'Proyectos': ['Id', 'ClienteId', 'VentaId', 'Nombre', 'Descripcion', 'Alcance', 'Stack', 'FechaInicio', 'FechaEntrega', 'Estado', 'UrlRepo', 'UrlDemo', 'Notas', 'FechaCreacion'],
     'ProyectoEntregables': ['Id', 'ProyectoId', 'Descripcion', 'Estado'],
     'Suscripciones': ['Id', 'ClienteId', 'ProyectoId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
     'Config': ['Clave', 'Valor']
@@ -185,4 +185,12 @@ function agregarFacturaFolioAVentas() {
 function agregarAlcanceYEntregablesAProyectos() {
   agregarColumnaSiNoExiste_('Proyectos', 'Alcance');
   crearPestanaSiNoExiste_('ProyectoEntregables', ['Id', 'ProyectoId', 'Descripcion', 'Estado']);
+}
+
+/**
+ * Migración de un solo uso: agrega la columna "VentaId" a Proyectos, para
+ * poder vincular un proyecto con la venta/factura que lo está pagando.
+ */
+function agregarVentaAProyectos() {
+  agregarColumnaSiNoExiste_('Proyectos', 'VentaId');
 }
