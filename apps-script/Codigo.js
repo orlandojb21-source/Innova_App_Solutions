@@ -60,6 +60,8 @@ function manejarSolicitud_(e) {
         return okResponse(ventasEliminar(datos.Id));
       case 'ventas.crearDesdeCotizacion':
         return okResponse(ventasCrearDesdeCotizacion(datos.CotizacionId));
+      case 'ventas.registrarAbono':
+        return okResponse(ventasRegistrarAbono(datos.Id, datos.Monto));
 
       case 'proyectos.listar':
         return okResponse(proyectosListar());

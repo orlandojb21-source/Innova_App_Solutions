@@ -50,18 +50,23 @@ function pintarTablaVentas(filtroEstado, contenedor) {
   }
   destino.innerHTML = `
     <table class="tabla">
-      <thead><tr><th>Fecha</th><th>Cliente</th><th>Concepto</th><th>Monto</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Fecha</th><th>Cliente</th><th>Concepto</th><th>Monto</th><th>Abonado</th><th>Saldo</th><th>Estado</th><th></th></tr></thead>
       <tbody>
         ${ventas.map((v) => {
           const cliente = clientePorId[v.ClienteId];
+          const pagado = Number(v.MontoPagado || 0);
+          const saldo = Number(v.Monto) - pagado;
           return `
             <tr>
               <td>${formatDate(v.Fecha)}</td>
               <td>${cliente ? esc(cliente.Nombre) : '—'}</td>
               <td>${esc(v.Concepto)}</td>
               <td>${formatMoney(v.Monto, _monedaActual)}</td>
+              <td>${formatMoney(pagado, _monedaActual)}</td>
+              <td>${formatMoney(saldo, _monedaActual)}</td>
               <td>${badgeEstado(v.Estado, BADGES_VENTA)}</td>
               <td class="acciones-fila">
+                ${v.Estado !== 'Pagado' ? `<button class="btn btn-primario btn-chico" data-registrar-abono="${esc(v.Id)}">Registrar abono</button>` : ''}
                 <button class="btn btn-secundario btn-chico" data-editar-venta="${esc(v.Id)}">Editar</button>
                 <button class="btn btn-peligro btn-chico" data-eliminar-venta="${esc(v.Id)}">Eliminar</button>
               </td>
@@ -71,6 +76,12 @@ function pintarTablaVentas(filtroEstado, contenedor) {
       </tbody>
     </table>
   `;
+  qsa('[data-registrar-abono]', destino).forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const venta = _cacheVentas.find((v) => v.Id === btn.dataset.registrarAbono);
+      abrirModalAbono(venta);
+    });
+  });
   qsa('[data-editar-venta]', destino).forEach((btn) => {
     btn.addEventListener('click', () => {
       const venta = _cacheVentas.find((v) => v.Id === btn.dataset.editarVenta);
@@ -96,16 +107,13 @@ function abrirFormularioVenta(venta) {
           </select>
         </div>
         <div class="campo full"><label>Concepto *</label><input name="Concepto" required value="${esc(venta && venta.Concepto)}"></div>
-        <div class="campo"><label>Monto *</label><input type="number" step="0.01" min="0" name="Monto" required value="${esc(venta ? venta.Monto : '')}"></div>
+        <div class="campo"><label>Monto total *</label><input type="number" step="0.01" min="0.01" name="Monto" required value="${esc(venta ? venta.Monto : '')}"></div>
+        <div class="campo"><label>Monto ya abonado</label><input type="number" step="0.01" min="0" name="MontoPagado" value="${esc(venta ? (venta.MontoPagado || 0) : 0)}"></div>
         <div class="campo"><label>Fecha</label><input type="date" name="Fecha" value="${esc(venta ? (venta.Fecha || '').slice(0, 10) : new Date().toISOString().slice(0, 10))}"></div>
-        <div class="campo"><label>Estado</label>
-          <select name="Estado">
-            ${['Pagado', 'Pendiente', 'Parcial'].map((op) => `<option value="${op}" ${venta && venta.Estado === op ? 'selected' : ''}>${op}</option>`).join('')}
-          </select>
-        </div>
         <div class="campo"><label>Método de pago</label><input name="MetodoPago" value="${esc(venta && venta.MetodoPago)}"></div>
         <div class="campo full"><label>Notas</label><textarea name="Notas">${esc(venta && venta.Notas)}</textarea></div>
       </div>
+      <p style="font-size:12.5px;color:var(--texto-sub);margin-top:-6px">El estado (Pagado / Parcial / Pendiente) se calcula solo según lo abonado. Para agregar un pago después, usa "Registrar abono" en la tabla.</p>
       <div class="modal-acciones">
         <button type="button" class="btn btn-secundario" data-cerrar-modal>Cancelar</button>
         <button type="submit" class="btn btn-primario">Guardar</button>
@@ -133,6 +141,36 @@ async function guardarVenta(e, id) {
     mostrarToast(err.message, 'error');
     btn.disabled = false;
   }
+}
+
+function abrirModalAbono(venta) {
+  const saldo = Number(venta.Monto) - Number(venta.MontoPagado || 0);
+  abrirModal(`
+    <h3>Registrar abono</h3>
+    <p style="color:var(--texto-sub);font-size:13.5px;margin-top:-8px">${esc(venta.Concepto)} — saldo pendiente: ${formatMoney(saldo, _monedaActual)}</p>
+    <form id="form-abono">
+      <div class="campo full"><label>Monto del abono *</label><input type="number" step="0.01" min="0.01" max="${saldo}" name="MontoAbono" required autofocus></div>
+      <div class="modal-acciones">
+        <button type="button" class="btn btn-secundario" data-cerrar-modal>Cancelar</button>
+        <button type="submit" class="btn btn-primario">Registrar</button>
+      </div>
+    </form>
+  `);
+  qs('#form-abono').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.submitter || qs('button[type="submit"]', e.target);
+    const monto = Number(new FormData(e.target).get('MontoAbono'));
+    btn.disabled = true;
+    try {
+      await llamarApi('ventas.registrarAbono', { Id: venta.Id, Monto: monto });
+      cerrarModal();
+      mostrarToast('Abono registrado.', 'exito');
+      cargarTablaVentas();
+    } catch (err) {
+      mostrarToast(err.message, 'error');
+      btn.disabled = false;
+    }
+  });
 }
 
 async function eliminarVenta(id) {

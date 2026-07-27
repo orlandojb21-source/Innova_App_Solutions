@@ -1,3 +1,9 @@
+function calcularEstadoVenta_(monto, montoPagado) {
+  if (montoPagado >= monto) return 'Pagado';
+  if (montoPagado > 0) return 'Parcial';
+  return 'Pendiente';
+}
+
 function ventasListar() {
   var ventas = sheetToObjects(sheet_('Ventas'));
   return ventas.sort(function (a, b) { return new Date(b.Fecha) - new Date(a.Fecha); });
@@ -7,17 +13,22 @@ function ventasCrear(datos) {
   return withLock(function () {
     datos = datos || {};
     if (!datos.Concepto) throw new Error('Describe el concepto de la venta.');
-    if (datos.Monto === undefined || datos.Monto === null || isNaN(Number(datos.Monto))) {
+    if (datos.Monto === undefined || datos.Monto === null || isNaN(Number(datos.Monto)) || Number(datos.Monto) <= 0) {
       throw new Error('El monto de la venta no es válido.');
     }
+    var monto = round2_(datos.Monto);
+    var montoPagado = round2_(datos.MontoPagado || 0);
+    if (montoPagado > monto) throw new Error('El monto abonado no puede ser mayor al monto total de la venta.');
+
     var registro = {
       Id: newId(),
       ClienteId: datos.ClienteId || '',
       CotizacionId: datos.CotizacionId || '',
       Concepto: datos.Concepto,
-      Monto: round2_(datos.Monto),
+      Monto: monto,
+      MontoPagado: montoPagado,
       Fecha: datos.Fecha || nowIso(),
-      Estado: datos.Estado || 'Pendiente',
+      Estado: calcularEstadoVenta_(monto, montoPagado),
       MetodoPago: datos.MetodoPago || '',
       Notas: datos.Notas || '',
       FechaCreacion: nowIso()
@@ -30,8 +41,19 @@ function ventasCrear(datos) {
 function ventasActualizar(id, cambios) {
   return withLock(function () {
     if (!id) throw new Error('Falta el Id de la venta.');
-    if (cambios && cambios.Monto !== undefined) cambios.Monto = round2_(cambios.Monto);
-    updateRowById(sheet_('Ventas'), id, cambios);
+    cambios = cambios || {};
+    var sheet = sheet_('Ventas');
+    var actual = sheetToObjects(sheet).filter(function (v) { return v.Id === id; })[0];
+    if (!actual) throw new Error('Venta no encontrada.');
+
+    var monto = cambios.Monto !== undefined ? round2_(cambios.Monto) : Number(actual.Monto);
+    var montoPagado = cambios.MontoPagado !== undefined ? round2_(cambios.MontoPagado) : Number(actual.MontoPagado || 0);
+    if (montoPagado > monto) throw new Error('El monto abonado no puede ser mayor al monto total de la venta.');
+
+    cambios.Monto = monto;
+    cambios.MontoPagado = montoPagado;
+    cambios.Estado = calcularEstadoVenta_(monto, montoPagado);
+    updateRowById(sheet, id, cambios);
     return { Id: id };
   });
 }
@@ -41,6 +63,31 @@ function ventasEliminar(id) {
     if (!id) throw new Error('Falta el Id de la venta.');
     deleteRowById(sheet_('Ventas'), id);
     return { Id: id };
+  });
+}
+
+function ventasRegistrarAbono(id, monto) {
+  return withLock(function () {
+    if (!id) throw new Error('Falta el Id de la venta.');
+    if (monto === undefined || monto === null || isNaN(Number(monto)) || Number(monto) <= 0) {
+      throw new Error('El monto del abono no es válido.');
+    }
+    var sheet = sheet_('Ventas');
+    var venta = sheetToObjects(sheet).filter(function (v) { return v.Id === id; })[0];
+    if (!venta) throw new Error('Venta no encontrada.');
+
+    var montoTotal = Number(venta.Monto);
+    var pagadoActual = Number(venta.MontoPagado || 0);
+    var saldoPendiente = round2_(montoTotal - pagadoActual);
+    var nuevoMontoPagado = round2_(pagadoActual + Number(monto));
+
+    if (nuevoMontoPagado > montoTotal) {
+      throw new Error('Ese abono supera el saldo pendiente (' + saldoPendiente + ').');
+    }
+
+    var nuevoEstado = calcularEstadoVenta_(montoTotal, nuevoMontoPagado);
+    updateRowById(sheet, id, { MontoPagado: nuevoMontoPagado, Estado: nuevoEstado });
+    return { Id: id, MontoPagado: nuevoMontoPagado, Estado: nuevoEstado };
   });
 }
 
@@ -58,6 +105,7 @@ function ventasCrearDesdeCotizacion(cotizacionId) {
       CotizacionId: cot.Id,
       Concepto: 'Cotización ' + cot.Folio,
       Monto: round2_(cot.Total),
+      MontoPagado: 0,
       Fecha: nowIso(),
       Estado: 'Pendiente',
       MetodoPago: '',

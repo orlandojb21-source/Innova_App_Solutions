@@ -27,7 +27,7 @@ function configurarProyecto() {
     'Clientes': ['Id', 'Nombre', 'Empresa', 'Telefono', 'Email', 'Direccion', 'Notas', 'FechaCreacion'],
     'Cotizaciones': ['Id', 'Folio', 'ClienteId', 'Fecha', 'ValidezDias', 'Subtotal', 'DescuentoPct', 'ImpuestoPct', 'Total', 'Estado', 'Notas', 'FechaCreacion'],
     'CotizacionItems': ['Id', 'CotizacionId', 'Descripcion', 'Cantidad', 'PrecioUnitario', 'Subtotal'],
-    'Ventas': ['Id', 'ClienteId', 'CotizacionId', 'Concepto', 'Monto', 'Fecha', 'Estado', 'MetodoPago', 'Notas', 'FechaCreacion'],
+    'Ventas': ['Id', 'ClienteId', 'CotizacionId', 'Concepto', 'Monto', 'MontoPagado', 'Fecha', 'Estado', 'MetodoPago', 'Notas', 'FechaCreacion'],
     'Proyectos': ['Id', 'ClienteId', 'Nombre', 'Descripcion', 'Stack', 'FechaInicio', 'FechaEntrega', 'Estado', 'UrlRepo', 'UrlDemo', 'Notas', 'FechaCreacion'],
     'Suscripciones': ['Id', 'ClienteId', 'ProyectoId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
     'Config': ['Clave', 'Valor']
@@ -100,4 +100,37 @@ function agregarProyectoASuscripciones() {
   }
   sheet.getRange(1, headers.length + 1).setValue('ProyectoId');
   Logger.log('Listo. Columna ProyectoId agregada a Suscripciones.');
+}
+
+/**
+ * Migración de un solo uso: agrega la columna "MontoPagado" a Ventas para
+ * poder registrar abonos parciales (ej. 50% al iniciar un proyecto y 50%
+ * al entregarlo). Rellena las ventas existentes: las que ya están en
+ * "Pagado" quedan con MontoPagado = Monto; el resto en 0 — si tienes
+ * ventas en "Parcial" de antes de este cambio, revísalas y corrige el
+ * abono a mano una vez creada la columna. No afecta ninguna fila más.
+ */
+function agregarMontoPagadoAVentas() {
+  var sheet = sheet_('Ventas');
+  var headers = headers_(sheet);
+  if (headers.indexOf('MontoPagado') !== -1) {
+    Logger.log('La columna MontoPagado ya existe, no se hizo ningún cambio.');
+    return;
+  }
+
+  var nuevaCol = headers.length + 1;
+  sheet.getRange(1, nuevaCol).setValue('MontoPagado');
+
+  var lastRow = sheet.getLastRow();
+  if (lastRow >= 2) {
+    var idxEstado = headers.indexOf('Estado');
+    var idxMonto = headers.indexOf('Monto');
+    var datos = sheet.getRange(2, 1, lastRow - 1, headers.length).getValues();
+    var columna = datos.map(function (fila) {
+      return [fila[idxEstado] === 'Pagado' ? fila[idxMonto] : 0];
+    });
+    sheet.getRange(2, nuevaCol, columna.length, 1).setValues(columna);
+  }
+
+  Logger.log('Listo. Columna MontoPagado agregada. Revisa manualmente las ventas que estén en estado Parcial.');
 }
