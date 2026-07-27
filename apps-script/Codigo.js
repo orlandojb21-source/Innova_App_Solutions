@@ -70,6 +70,19 @@ function manejarSolicitud_(e) {
       case 'proyectos.eliminar':
         return okResponse(proyectosEliminar(datos.Id));
 
+      case 'suscripciones.listar':
+        return okResponse(suscripcionesListar());
+      case 'suscripciones.crear':
+        return okResponse(suscripcionesCrear(datos));
+      case 'suscripciones.actualizar':
+        return okResponse(suscripcionesActualizar(datos.Id, datos.cambios));
+      case 'suscripciones.eliminar':
+        return okResponse(suscripcionesEliminar(datos.Id));
+      case 'suscripciones.registrarPago':
+        return okResponse(suscripcionesRegistrarPago(datos.Id));
+      case 'suscripciones.alertas':
+        return okResponse(suscripcionesAlertas());
+
       case 'config.obtener':
         return okResponse(configObtener());
       case 'config.guardar':
@@ -130,6 +143,7 @@ function dashboardResumen() {
     ventasDelMes: round2_(ventasDelMes),
     ventasPendientesMonto: round2_(ventasPendientesMonto),
     proyectosActivos: proyectosActivos,
-    totalClientes: clientes.length
+    totalClientes: clientes.length,
+    suscripcionesPorVencer: suscripcionesAlertas().length
   };
 }

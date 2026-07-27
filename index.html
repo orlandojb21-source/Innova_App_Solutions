@@ -42,7 +42,13 @@
       <img src="img/icon-192.png" alt="">
       <span>InnovaAppSolutions</span>
     </div>
-    <button class="btn-salir" id="btn-salir">Cerrar sesión</button>
+    <div class="topbar-acciones">
+      <button class="btn-campanita" id="btn-campanita" title="Suscripciones por vencer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <span class="badge badge-rojo oculto" id="badge-alertas">0</span>
+      </button>
+      <button class="btn-salir" id="btn-salir">Cerrar sesión</button>
+    </div>
   </header>
 
   <div class="cuerpo">
@@ -50,6 +56,7 @@
       <button class="nav-btn" data-vista="dashboard">Resumen</button>
       <button class="nav-btn" data-vista="cotizaciones">Cotizaciones</button>
       <button class="nav-btn" data-vista="ventas">Ventas</button>
+      <button class="nav-btn" data-vista="suscripciones">Suscripciones</button>
       <button class="nav-btn" data-vista="proyectos">Proyectos</button>
       <button class="nav-btn" data-vista="clientes">Clientes</button>
       <button class="nav-btn" data-vista="ajustes">Ajustes</button>
@@ -60,6 +67,7 @@
       <section id="vista-clientes" class="vista oculto"></section>
       <section id="vista-cotizaciones" class="vista oculto"></section>
       <section id="vista-ventas" class="vista oculto"></section>
+      <section id="vista-suscripciones" class="vista oculto"></section>
       <section id="vista-proyectos" class="vista oculto"></section>
       <section id="vista-ajustes" class="vista oculto"></section>
     </main>
@@ -75,10 +83,12 @@
 <script src="js/utils.js"></script>
 <script src="js/api.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/alertas.js"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/clientes.js"></script>
 <script src="js/cotizaciones.js"></script>
 <script src="js/ventas.js"></script>
+<script src="js/suscripciones.js"></script>
 <script src="js/proyectos.js"></script>
 <script src="js/ajustes.js"></script>
 <script src="js/app.js"></script>

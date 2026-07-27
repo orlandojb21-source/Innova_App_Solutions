@@ -117,6 +117,36 @@ input, select, textarea { font-family: inherit; color: var(--texto); background:
 .topbar-marca img { width: 32px; height: 32px; border-radius: 8px; }
 .topbar-marca span { font-weight: 600; font-size: 15px; color: #fff; }
 
+.topbar-acciones { display: flex; align-items: center; gap: 10px; }
+
+.btn-campanita {
+  position: relative;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  min-height: 38px;
+}
+.btn-campanita:hover { background: rgba(255, 255, 255, 0.1); }
+.btn-campanita .badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-size: 10.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 .btn-salir {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -349,10 +379,12 @@ table.tabla tr:hover td { background: var(--bg); }
     right: 0;
     width: 100%;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 6px 4px;
     padding-bottom: max(6px, env(safe-area-inset-bottom));
-    gap: 0;
+    gap: 2px;
     z-index: 30;
     box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.25);
   }
@@ -360,12 +392,14 @@ table.tabla tr:hover td { background: var(--bg); }
     flex-direction: column;
     gap: 2px;
     font-size: 11px;
-    padding: 8px 4px;
+    padding: 8px 6px;
     border-radius: 10px;
-    flex: 1;
+    flex: 0 0 auto;
+    min-width: 68px;
     align-items: center;
     min-height: 48px;
     justify-content: center;
+    white-space: nowrap;
   }
 
   .contenido { padding: 16px; }

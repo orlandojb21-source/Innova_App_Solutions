@@ -112,6 +112,16 @@ function newId() { return Utilities.getUuid(); }
 function nowIso() { return new Date().toISOString(); }
 function round2_(n) { return Math.round((Number(n) || 0) * 100) / 100; }
 
+/** Días de diferencia entre hoy (zona horaria de Panamá) y una fecha
+ *  "yyyy-MM-dd", comparando solo el día calendario (evita bugs de horas). */
+function diasDesdeHoy_(fechaIso) {
+  var msPorDia = 24 * 60 * 60 * 1000;
+  var hoyStr = Utilities.formatDate(new Date(), 'America/Panama', 'yyyy-MM-dd');
+  var hoy = new Date(hoyStr + 'T00:00:00Z');
+  var fecha = new Date(String(fechaIso).slice(0, 10) + 'T00:00:00Z');
+  return Math.round((fecha - hoy) / msPorDia);
+}
+
 function configObtener() {
   var sheet = sheet_('Config');
   var data = sheet.getDataRange().getValues();

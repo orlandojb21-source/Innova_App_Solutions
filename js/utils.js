@@ -30,6 +30,15 @@ function formatDate(iso) {
   return d.toLocaleDateString('es-PA', { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
 
+function diasHastaFecha(fechaIso) {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const partes = String(fechaIso).match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!partes) return NaN;
+  const fecha = new Date(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3]));
+  return Math.round((fecha - hoy) / (1000 * 60 * 60 * 24));
+}
+
 function qs(sel, root) { return (root || document).querySelector(sel); }
 function qsa(sel, root) { return Array.from((root || document).querySelectorAll(sel)); }
 

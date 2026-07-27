@@ -3,6 +3,7 @@ const VISTAS = {
   clientes: renderClientes,
   cotizaciones: renderCotizaciones,
   ventas: renderVentas,
+  suscripciones: renderSuscripciones,
   proyectos: renderProyectos,
   ajustes: renderAjustes
 };
@@ -16,6 +17,7 @@ function mostrarApp() {
   qs('#pantalla-login').classList.add('oculto');
   qs('#app-shell').classList.remove('oculto');
   navegarA('dashboard');
+  actualizarCampanitaAlertas();
 }
 
 function mostrarCargandoLogin(mostrando) {
@@ -37,6 +39,7 @@ function navegarA(vista) {
 document.addEventListener('DOMContentLoaded', () => {
   qs('#btn-google-login').addEventListener('click', iniciarGoogleLogin);
   qs('#btn-salir').addEventListener('click', cerrarSesion);
+  qs('#btn-campanita').addEventListener('click', abrirPanelAlertas);
   qsa('.nav-btn').forEach((btn) => {
     btn.addEventListener('click', () => navegarA(btn.dataset.vista));
   });

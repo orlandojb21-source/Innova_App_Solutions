@@ -29,6 +29,7 @@ function configurarProyecto() {
     'CotizacionItems': ['Id', 'CotizacionId', 'Descripcion', 'Cantidad', 'PrecioUnitario', 'Subtotal'],
     'Ventas': ['Id', 'ClienteId', 'CotizacionId', 'Concepto', 'Monto', 'Fecha', 'Estado', 'MetodoPago', 'Notas', 'FechaCreacion'],
     'Proyectos': ['Id', 'ClienteId', 'Nombre', 'Descripcion', 'Stack', 'FechaInicio', 'FechaEntrega', 'Estado', 'UrlRepo', 'UrlDemo', 'Notas', 'FechaCreacion'],
+    'Suscripciones': ['Id', 'ClienteId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
     'Config': ['Clave', 'Valor']
   };
 
@@ -63,4 +64,23 @@ function configurarProyecto() {
   Logger.log('Listo. Hoja creada: ' + ss.getUrl());
   Logger.log('Cuenta con acceso a la app: ' + adminEmail);
   Logger.log('Siguiente paso: Implementar > Nueva implementación > Aplicación web, y configurar LogoUrl en la pestaña Config una vez publicada la app en Vercel.');
+}
+
+/**
+ * Migración de un solo uso: agrega la pestaña "Suscripciones" a un Sheet
+ * que ya fue creado por configurarProyecto() antes de que este módulo
+ * existiera. No afecta ninguna pestaña ni dato existente. Es seguro
+ * ejecutarla más de una vez (si la pestaña ya existe, no hace nada).
+ */
+function agregarModuloSuscripciones() {
+  var ss = ss_();
+  if (ss.getSheetByName('Suscripciones')) {
+    Logger.log('La pestaña Suscripciones ya existe, no se hizo ningún cambio.');
+    return;
+  }
+  var headers = ['Id', 'ClienteId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'];
+  var sheet = ss.insertSheet('Suscripciones');
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.setFrozenRows(1);
+  Logger.log('Listo. Pestaña Suscripciones creada en: ' + ss.getUrl());
 }

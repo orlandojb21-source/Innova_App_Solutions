@@ -28,7 +28,15 @@ async function renderDashboard(contenedor) {
         <div class="valor">${r.totalClientes}</div>
         <div class="etiqueta">Clientes registrados</div>
       </div>
+      <div class="tarjeta-resumen ${r.suscripcionesPorVencer > 0 ? 'naranja' : ''}" id="tarjeta-suscripciones-vencer" style="cursor:pointer">
+        <div class="valor">${r.suscripcionesPorVencer}</div>
+        <div class="etiqueta">Suscripciones por vencer</div>
+      </div>
     `;
+    qs('#tarjeta-suscripciones-vencer', contenedor).addEventListener('click', async () => {
+      await actualizarCampanitaAlertas();
+      abrirPanelAlertas();
+    });
   } catch (e) {
     qs('#grid-resumen', contenedor).innerHTML = `<div class="vacio">${esc(e.message)}</div>`;
   }
