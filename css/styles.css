@@ -235,6 +235,9 @@ table.tabla tr:hover td { background: var(--bg); }
 
 .acciones-fila { display: flex; gap: 6px; flex-wrap: wrap; }
 
+.link-whatsapp { color: var(--green); text-decoration: none; font-weight: 500; }
+.link-whatsapp:hover { text-decoration: underline; }
+
 .vacio { padding: 40px 20px; text-align: center; color: var(--texto-sub); }
 
 /* ---------- Badges de estado ---------- */

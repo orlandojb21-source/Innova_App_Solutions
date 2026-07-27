@@ -13,7 +13,7 @@ async function renderAjustes(contenedor) {
       <form id="form-ajustes">
         <div class="form-grid">
           <div class="campo full"><label>Nombre de la empresa</label><input name="NombreEmpresa" value="${esc(config.NombreEmpresa)}"></div>
-          <div class="campo"><label>RUC / ID fiscal</label><input name="RUC" value="${esc(config.RUC)}"></div>
+          <div class="campo"><label>RUC / Cédula (opcional)</label><input name="RUC" value="${esc(config.RUC)}" placeholder="Déjalo vacío si no aplica"></div>
           <div class="campo"><label>Teléfono</label><input name="Telefono" value="${esc(config.Telefono)}"></div>
           <div class="campo full"><label>Dirección</label><input name="Direccion" value="${esc(config.Direccion)}"></div>
           <div class="campo full"><label>Email de contacto</label><input type="email" name="EmailContacto" value="${esc(config.EmailContacto)}"></div>

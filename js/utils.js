@@ -72,6 +72,20 @@ function badgeEstado(estado, mapa) {
   return `<span class="badge ${clase}">${esc(estado)}</span>`;
 }
 
+function enlaceWhatsapp(telefono) {
+  if (!telefono) return '';
+  let digitos = String(telefono).replace(/\D/g, '');
+  if (!digitos) return '';
+  if (digitos.length <= 8) digitos = '507' + digitos; // número local de Panamá sin código de país
+  return `https://wa.me/${digitos}`;
+}
+
+function enlaceTelefonoHtml(telefono) {
+  if (!telefono) return '—';
+  const url = enlaceWhatsapp(telefono);
+  return `<a href="${esc(url)}" target="_blank" rel="noopener" class="link-whatsapp" title="Abrir chat de WhatsApp">${esc(telefono)}</a>`;
+}
+
 document.addEventListener('click', (e) => {
   if (e.target.matches('[data-cerrar-modal]') || e.target.id === 'modal-overlay') {
     cerrarModal();

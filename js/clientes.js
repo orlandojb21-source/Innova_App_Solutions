@@ -28,7 +28,7 @@ async function cargarTablaClientes(contenedor) {
             <tr>
               <td>${esc(c.Nombre)}</td>
               <td>${esc(c.Empresa) || '—'}</td>
-              <td>${esc(c.Telefono) || '—'}</td>
+              <td>${enlaceTelefonoHtml(c.Telefono)}</td>
               <td>${esc(c.Email) || '—'}</td>
               <td class="acciones-fila">
                 <button class="btn btn-secundario btn-chico" data-editar-cliente="${esc(c.Id)}">Editar</button>
