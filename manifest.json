@@ -1,0 +1,14 @@
+{
+  "name": "InnovaAppSolutions",
+  "short_name": "InnovaAppSolutions",
+  "description": "Cotizaciones, ventas y proyectos de Innova App Solutions.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1830",
+  "theme_color": "#0b1830",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
