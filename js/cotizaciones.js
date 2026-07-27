@@ -230,7 +230,6 @@ async function abrirDetalleCotizacion(id) {
   try {
     const cot = await llamarApi('cotizaciones.obtener', { Id: id });
     const cliente = _cacheCotizacionesClientes.find((c) => c.Id === cot.ClienteId);
-    const puedeConvertir = cot.Estado === 'Aceptada';
 
     abrirModal(`
       <h3>Cotización ${esc(cot.Folio)} ${badgeEstado(cot.Estado, BADGES_COTIZACION)}</h3>
@@ -268,7 +267,6 @@ async function abrirDetalleCotizacion(id) {
         <button type="button" class="btn btn-secundario btn-chico" id="btn-aplicar-estado">Cambiar estado</button>
         <button type="button" class="btn btn-secundario" id="btn-descargar-pdf">Descargar PDF</button>
         <button type="button" class="btn btn-secundario" id="btn-enviar-correo">Enviar por correo</button>
-        ${puedeConvertir ? '<button type="button" class="btn btn-primario" id="btn-convertir-venta">Convertir a venta</button>' : ''}
         <button type="button" class="btn btn-secundario" id="btn-editar-cotizacion">Editar</button>
         <button type="button" class="btn btn-peligro" data-cerrar-modal>Cerrar</button>
       </div>
@@ -279,8 +277,6 @@ async function abrirDetalleCotizacion(id) {
     qs('#btn-descargar-pdf', modal).addEventListener('click', (e) => descargarPdfCotizacion(cot.Id, e.target));
     qs('#btn-enviar-correo', modal).addEventListener('click', (e) => enviarCorreoCotizacion(cot.Id, cliente, e.target));
     qs('#btn-editar-cotizacion', modal).addEventListener('click', () => abrirFormularioCotizacion(cot));
-    const btnConvertir = qs('#btn-convertir-venta', modal);
-    if (btnConvertir) btnConvertir.addEventListener('click', () => convertirCotizacionEnVenta(cot.Id));
   } catch (e) {
     mostrarToast(e.message, 'error');
     cerrarModal();
@@ -289,8 +285,11 @@ async function abrirDetalleCotizacion(id) {
 
 async function cambiarEstadoCotizacion(id, estado) {
   try {
-    await llamarApi('cotizaciones.cambiarEstado', { Id: id, Estado: estado });
-    mostrarToast('Estado actualizado.', 'exito');
+    const resultado = await llamarApi('cotizaciones.cambiarEstado', { Id: id, Estado: estado });
+    mostrarToast(
+      resultado.ventaGenerada ? 'Estado actualizado. Se generó la venta en "Ventas".' : 'Estado actualizado.',
+      'exito'
+    );
     cerrarModal();
     cargarTablaCotizaciones();
   } catch (e) {
@@ -325,15 +324,6 @@ async function enviarCorreoCotizacion(id, cliente, btn) {
   }
 }
 
-async function convertirCotizacionEnVenta(id) {
-  try {
-    await llamarApi('ventas.crearDesdeCotizacion', { CotizacionId: id });
-    mostrarToast('Venta creada a partir de la cotización.', 'exito');
-    cerrarModal();
-  } catch (e) {
-    mostrarToast(e.message, 'error');
-  }
-}
 
 async function eliminarCotizacion(id) {
   if (!confirm('¿Eliminar esta cotización y sus ítems?')) return;

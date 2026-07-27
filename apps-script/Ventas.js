@@ -93,26 +93,35 @@ function ventasRegistrarAbono(id, monto) {
 
 function ventasCrearDesdeCotizacion(cotizacionId) {
   return withLock(function () {
-    if (!cotizacionId) throw new Error('Falta el Id de la cotización.');
-    var cot = sheetToObjects(sheet_('Cotizaciones')).filter(function (c) { return c.Id === cotizacionId; })[0];
-    if (!cot) throw new Error('Cotización no encontrada.');
-    if (cot.Estado !== 'Aceptada') throw new Error('Solo se puede convertir en venta una cotización Aceptada.');
-    var yaExiste = sheetToObjects(sheet_('Ventas')).some(function (v) { return v.CotizacionId === cotizacionId; });
-    if (yaExiste) throw new Error('Ya existe una venta generada para esta cotización.');
-    var registro = {
-      Id: newId(),
-      ClienteId: cot.ClienteId,
-      CotizacionId: cot.Id,
-      Concepto: 'Cotización ' + cot.Folio,
-      Monto: round2_(cot.Total),
-      MontoPagado: 0,
-      Fecha: nowIso(),
-      Estado: 'Pendiente',
-      MetodoPago: '',
-      Notas: '',
-      FechaCreacion: nowIso()
-    };
-    appendRow(sheet_('Ventas'), registro);
-    return registro;
+    return crearVentaDesdeCotizacionSinLock_(cotizacionId);
   });
+}
+
+/**
+ * Misma lógica que ventasCrearDesdeCotizacion pero sin adquirir el lock,
+ * para poder llamarla desde cotizacionesCambiarEstado (que ya sostiene el
+ * lock) sin intentar bloquear dos veces dentro de la misma ejecución.
+ */
+function crearVentaDesdeCotizacionSinLock_(cotizacionId) {
+  if (!cotizacionId) throw new Error('Falta el Id de la cotización.');
+  var cot = sheetToObjects(sheet_('Cotizaciones')).filter(function (c) { return c.Id === cotizacionId; })[0];
+  if (!cot) throw new Error('Cotización no encontrada.');
+  if (cot.Estado !== 'Aceptada') throw new Error('Solo se puede convertir en venta una cotización Aceptada.');
+  var yaExiste = sheetToObjects(sheet_('Ventas')).some(function (v) { return v.CotizacionId === cotizacionId; });
+  if (yaExiste) throw new Error('Ya existe una venta generada para esta cotización.');
+  var registro = {
+    Id: newId(),
+    ClienteId: cot.ClienteId,
+    CotizacionId: cot.Id,
+    Concepto: 'Cotización ' + cot.Folio,
+    Monto: round2_(cot.Total),
+    MontoPagado: 0,
+    Fecha: nowIso(),
+    Estado: 'Pendiente',
+    MetodoPago: '',
+    Notas: '',
+    FechaCreacion: nowIso()
+  };
+  appendRow(sheet_('Ventas'), registro);
+  return registro;
 }

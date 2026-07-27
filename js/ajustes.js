@@ -13,6 +13,8 @@ async function renderAjustes(contenedor) {
       <form id="form-ajustes">
         <div class="form-grid">
           <div class="campo full"><label>Nombre de la empresa</label><input name="NombreEmpresa" value="${esc(config.NombreEmpresa)}"></div>
+          <div class="campo"><label>Tu nombre (firmante)</label><input name="NombreFirmante" value="${esc(config.NombreFirmante)}" placeholder="Ej: Orlando Bernal"></div>
+          <div class="campo"><label>Cargo</label><input name="Cargo" value="${esc(config.Cargo)}" placeholder="Ej: CEO / Fundador"></div>
           <div class="campo"><label>RUC / Cédula (opcional)</label><input name="RUC" value="${esc(config.RUC)}" placeholder="Déjalo vacío si no aplica"></div>
           <div class="campo"><label>Teléfono</label><input name="Telefono" value="${esc(config.Telefono)}"></div>
           <div class="campo full"><label>Dirección</label><input name="Direccion" value="${esc(config.Direccion)}"></div>
@@ -21,7 +23,7 @@ async function renderAjustes(contenedor) {
           <div class="campo"><label>Impuesto por defecto (%)</label><input type="number" min="0" max="100" step="0.01" name="ImpuestoPctDefault" value="${esc(config.ImpuestoPctDefault || 0)}"></div>
           <div class="campo full">
             <label>URL del logo (para el PDF de cotizaciones)</label>
-            <input name="LogoUrl" value="${esc(config.LogoUrl)}" placeholder="https://tu-dominio.vercel.app/img/logo.png">
+            <input name="LogoUrl" value="${esc(config.LogoUrl)}" placeholder="https://innova-app-solutions-swart.vercel.app/img/icon-192.png">
           </div>
         </div>
         <div class="modal-acciones" style="justify-content:flex-start">

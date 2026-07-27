@@ -49,6 +49,10 @@ function agregarEncabezado_(body, cot, config, moneda) {
   insertarLogoEnCelda_(celdaEmpresa, config.LogoUrl);
   var pNombre = celdaEmpresa.appendParagraph(config.NombreEmpresa || 'Innova App Solutions');
   pNombre.editAsText().setBold(true).setFontSize(15).setForegroundColor(COLOR_MARCA);
+  var firmante = [config.NombreFirmante, config.Cargo].filter(Boolean).join(' — ');
+  if (firmante) {
+    celdaEmpresa.appendParagraph(firmante).editAsText().setFontSize(10).setBold(true).setForegroundColor('#333333');
+  }
   [
     config.Direccion,
     [config.Telefono, config.EmailContacto].filter(Boolean).join('   ·   '),
@@ -181,8 +185,13 @@ function formatearFecha_(fechaIso) {
   return Utilities.formatDate(new Date(fechaIso), 'America/Panama', 'dd/MM/yyyy');
 }
 
-function sumarDias_(fechaIso, dias) {
-  var d = new Date(String(fechaIso).slice(0, 10) + 'T00:00:00Z');
+function sumarDias_(fechaValor, dias) {
+  // fechaValor puede llegar como Date (Sheets a veces devuelve un Date real,
+  // no un string) o como texto "yyyy-MM-dd" — normalizamos por Utilities.formatDate
+  // antes de sumar días, para no depender de un formato de entrada específico.
+  var fechaBase = Utilities.formatDate(new Date(fechaValor), 'America/Panama', 'yyyy-MM-dd');
+  var partes = fechaBase.split('-');
+  var d = new Date(Date.UTC(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2])));
   d.setUTCDate(d.getUTCDate() + Number(dias || 0));
   return Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd');
 }

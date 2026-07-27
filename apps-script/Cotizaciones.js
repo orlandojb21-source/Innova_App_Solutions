@@ -116,7 +116,18 @@ function cotizacionesCambiarEstado(id, estado) {
     if (!id) throw new Error('Falta el Id de la cotización.');
     if (ESTADOS_COTIZACION.indexOf(estado) === -1) throw new Error('Estado inválido: ' + estado);
     updateRowById(sheet_('Cotizaciones'), id, { Estado: estado });
-    return { Id: id, Estado: estado };
+
+    var ventaGenerada = false;
+    if (estado === 'Aceptada') {
+      try {
+        crearVentaDesdeCotizacionSinLock_(id);
+        ventaGenerada = true;
+      } catch (e) {
+        // Si ya existía una venta para esta cotización, no es un error real.
+        if (!/Ya existe una venta/.test(e.message)) throw e;
+      }
+    }
+    return { Id: id, Estado: estado, ventaGenerada: ventaGenerada };
   });
 }
 
