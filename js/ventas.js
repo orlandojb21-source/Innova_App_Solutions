@@ -66,6 +66,7 @@ function pintarTablaVentas(filtroEstado, contenedor) {
               <td>${formatMoney(saldo, _monedaActual)}</td>
               <td>${badgeEstado(v.Estado, BADGES_VENTA)}</td>
               <td class="acciones-fila">
+                <button class="btn btn-secundario btn-chico" data-ver-venta="${esc(v.Id)}">Ver</button>
                 ${v.Estado !== 'Pagado' ? `<button class="btn btn-primario btn-chico" data-registrar-abono="${esc(v.Id)}">Registrar abono</button>` : `<button class="btn btn-secundario btn-chico" data-descargar-factura="${esc(v.Id)}">Descargar factura</button>`}
                 <button class="btn btn-secundario btn-chico" data-editar-venta="${esc(v.Id)}">Editar</button>
                 <button class="btn btn-peligro btn-chico" data-eliminar-venta="${esc(v.Id)}">Eliminar</button>
@@ -76,6 +77,9 @@ function pintarTablaVentas(filtroEstado, contenedor) {
       </tbody>
     </table>
   `;
+  qsa('[data-ver-venta]', destino).forEach((btn) => {
+    btn.addEventListener('click', () => abrirDetalleVenta(btn.dataset.verVenta));
+  });
   qsa('[data-registrar-abono]', destino).forEach((btn) => {
     btn.addEventListener('click', () => {
       const venta = _cacheVentas.find((v) => v.Id === btn.dataset.registrarAbono);
@@ -142,6 +146,80 @@ async function guardarVenta(e, id) {
     cargarTablaVentas();
   } catch (err) {
     mostrarToast(err.message, 'error');
+    btn.disabled = false;
+  }
+}
+
+async function abrirDetalleVenta(id) {
+  abrirModal('<div class="vacio">Cargando…</div>');
+  try {
+    const venta = _cacheVentas.find((v) => v.Id === id);
+    const cliente = _cacheVentasClientes.find((c) => c.Id === venta.ClienteId);
+    const abonos = await llamarApi('ventas.listarAbonos', { VentaId: id });
+    const pagado = Number(venta.MontoPagado || 0);
+    const saldo = Number(venta.Monto) - pagado;
+
+    abrirModal(`
+      <h3>${esc(venta.Concepto)} ${badgeEstado(venta.Estado, BADGES_VENTA)}</h3>
+      <p style="color:var(--texto-sub);font-size:13.5px;margin-top:-8px">
+        ${cliente ? esc(cliente.Nombre) : 'Sin cliente asociado'} · ${formatDate(venta.Fecha)}
+      </p>
+
+      <div class="resumen-totales" style="text-align:left;margin-top:10px">
+        <div>Monto total: ${formatMoney(venta.Monto, _monedaActual)}</div>
+        <div>Abonado: ${formatMoney(pagado, _monedaActual)}</div>
+        <div class="total">Saldo: ${formatMoney(saldo, _monedaActual)}</div>
+      </div>
+
+      <div style="margin-top:14px">
+        <strong>Historial de abonos</strong>
+        ${abonos.length ? `
+          <table class="tabla" style="margin-top:6px">
+            <thead><tr><th>Folio</th><th>Fecha</th><th>Monto</th><th></th></tr></thead>
+            <tbody>
+              ${abonos.map((a) => `
+                <tr>
+                  <td>${esc(a.Folio)}</td>
+                  <td>${formatDate(a.Fecha)}</td>
+                  <td>${formatMoney(a.Monto, _monedaActual)}</td>
+                  <td class="acciones-fila"><button class="btn btn-secundario btn-chico" data-descargar-recibo="${esc(a.Id)}">Descargar recibo</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        ` : `<p class="vacio" style="padding:14px 0">Todavía no hay abonos registrados.</p>`}
+      </div>
+
+      <div class="modal-acciones" style="flex-wrap:wrap;margin-top:14px">
+        ${venta.Estado !== 'Pagado'
+          ? `<button type="button" class="btn btn-primario" id="btn-registrar-abono-detalle">Registrar abono</button>`
+          : `<button type="button" class="btn btn-secundario" id="btn-descargar-factura-detalle">Descargar factura</button>`}
+        <button type="button" class="btn btn-secundario" data-cerrar-modal>Cerrar</button>
+      </div>
+    `);
+
+    const modal = qs('#modal-contenido');
+    qsa('[data-descargar-recibo]', modal).forEach((btn) => {
+      btn.addEventListener('click', () => descargarReciboAbono(btn.dataset.descargarRecibo, btn));
+    });
+    const btnAbono = qs('#btn-registrar-abono-detalle', modal);
+    if (btnAbono) btnAbono.addEventListener('click', () => abrirModalAbono(venta));
+    const btnFactura = qs('#btn-descargar-factura-detalle', modal);
+    if (btnFactura) btnFactura.addEventListener('click', (e) => descargarFacturaVenta(venta.Id, e.target));
+  } catch (e) {
+    mostrarToast(e.message, 'error');
+    cerrarModal();
+  }
+}
+
+async function descargarReciboAbono(abonoId, btn) {
+  btn.disabled = true;
+  try {
+    const recibo = await llamarApi('ventas.generarRecibo', { AbonoId: abonoId });
+    descargarBase64(recibo.nombreArchivo, recibo.base64, 'application/pdf');
+  } catch (e) {
+    mostrarToast(e.message, 'error');
+  } finally {
     btn.disabled = false;
   }
 }

@@ -66,6 +66,8 @@ function manejarSolicitud_(e) {
         return okResponse(ventasGenerarFacturaPdf(datos.Id));
       case 'ventas.generarRecibo':
         return okResponse(ventasGenerarReciboPdf(datos.AbonoId));
+      case 'ventas.listarAbonos':
+        return okResponse(ventasListarAbonos(datos.VentaId));
 
       case 'proyectos.listar':
         return okResponse(proyectosListar());

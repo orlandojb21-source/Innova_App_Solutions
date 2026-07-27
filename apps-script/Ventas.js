@@ -102,6 +102,12 @@ function ventasRegistrarAbono(id, monto) {
   });
 }
 
+function ventasListarAbonos(ventaId) {
+  if (!ventaId) throw new Error('Falta el Id de la venta.');
+  var abonos = sheetToObjects(sheet_('Abonos')).filter(function (a) { return a.VentaId === ventaId; });
+  return abonos.sort(function (a, b) { return new Date(a.Fecha) - new Date(b.Fecha); });
+}
+
 function siguienteFolioAbono_() {
   var anio = new Date().getFullYear();
   var prefijo = 'REC-' + anio + '-';
