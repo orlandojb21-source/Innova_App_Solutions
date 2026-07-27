@@ -135,7 +135,7 @@ async function abrirFormularioCotizacion(cotizacion) {
         <div class="total">Total: <span id="resumen-total">${_monedaActual}0.00</span></div>
       </div>
 
-      <div class="campo full" style="margin-top:10px"><label>Notas</label><textarea name="Notas">${esc(editando && cotizacion.Notas)}</textarea></div>
+      <div class="campo full" style="margin-top:10px"><label>Notas</label><textarea name="Notas">${esc(cotizacion && cotizacion.Notas)}</textarea></div>
 
       <div class="modal-acciones">
         <button type="button" class="btn btn-secundario" data-cerrar-modal>Cancelar</button>

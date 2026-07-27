@@ -103,7 +103,7 @@ async function abrirFormularioSuscripcion(suscripcion) {
             ${proyectos.map((p) => `<option value="${esc(p.Id)}" ${editando && suscripcion.ProyectoId === p.Id ? 'selected' : ''}>${esc(p.Nombre)}</option>`).join('')}
           </select>
         </div>
-        <div class="campo full"><label>Producto / servicio *</label><input name="Producto" id="input-producto-suscripcion" required placeholder="Ej: Licencia IAS Tienda" value="${esc(editando && suscripcion.Producto)}"></div>
+        <div class="campo full"><label>Producto / servicio *</label><input name="Producto" id="input-producto-suscripcion" required placeholder="Ej: Licencia IAS Tienda" value="${esc(suscripcion && suscripcion.Producto)}"></div>
         <div class="campo"><label>Monto *</label><input type="number" step="0.01" min="0" name="Monto" required value="${esc(editando ? suscripcion.Monto : '')}"></div>
         <div class="campo"><label>Frecuencia *</label>
           <select name="Frecuencia" required>
@@ -112,7 +112,7 @@ async function abrirFormularioSuscripcion(suscripcion) {
         </div>
         <div class="campo"><label>Fecha de inicio</label><input type="date" name="FechaInicio" value="${esc(editando ? (suscripcion.FechaInicio || '').slice(0, 10) : new Date().toISOString().slice(0, 10))}"></div>
         <div class="campo"><label>Próximo vencimiento</label><input type="date" name="ProximoVencimiento" value="${esc(editando ? (suscripcion.ProximoVencimiento || '').slice(0, 10) : '')}" placeholder="Se calcula solo si lo dejas vacío"></div>
-        <div class="campo full"><label>Notas</label><textarea name="Notas">${esc(editando && suscripcion.Notas)}</textarea></div>
+        <div class="campo full"><label>Notas</label><textarea name="Notas">${esc(suscripcion && suscripcion.Notas)}</textarea></div>
       </div>
       <div class="modal-acciones">
         <button type="button" class="btn btn-secundario" data-cerrar-modal>Cancelar</button>
