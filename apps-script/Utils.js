@@ -87,6 +87,10 @@ function deleteRowById(sheet, id) {
 function sanitizeForSheet(value) {
   if (typeof value !== 'string') return value;
   if (/^[=+\-@\t\r]/.test(value)) return "'" + value;
+  // Cadenas de solo dígitos (números de cuenta, teléfonos sin "+", etc.):
+  // Sheets las auto-convierte a número y así se pierden ceros iniciales o
+  // se muestran en notación científica. Se fuerza texto plano.
+  if (/^\d+$/.test(value)) return "'" + value;
   return value;
 }
 
