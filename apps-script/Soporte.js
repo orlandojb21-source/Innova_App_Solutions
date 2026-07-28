@@ -1,15 +1,16 @@
-var FRECUENCIAS_SOPORTE = ['Mensual', 'Anual'];
+var DURACIONES_SOPORTE = ['Mensual', 'Trimestral', 'Semestral', 'Anual'];
+var MESES_POR_DURACION_SOPORTE = { Mensual: 1, Trimestral: 3, Semestral: 6, Anual: 12 };
 
 function soporteListar() {
   var contratos = sheetToObjects(sheet_('Soporte'));
-  return contratos.sort(function (a, b) { return new Date(a.ProximoVencimiento) - new Date(b.ProximoVencimiento); });
+  return contratos.sort(function (a, b) { return new Date(a.ProximoPago) - new Date(b.ProximoPago); });
 }
 
 function validarSoporte_(datos) {
   if (!datos.ClienteId) throw new Error('Selecciona un cliente.');
   if (!datos.Concepto || !String(datos.Concepto).trim()) throw new Error('Indica el concepto del contrato de soporte.');
   if (datos.Monto === undefined || datos.Monto === null || isNaN(Number(datos.Monto))) throw new Error('Monto inválido.');
-  if (FRECUENCIAS_SOPORTE.indexOf(datos.Frecuencia) === -1) throw new Error('Frecuencia inválida.');
+  if (DURACIONES_SOPORTE.indexOf(datos.DuracionContrato) === -1) throw new Error('Duración de contrato inválida.');
 }
 
 function soporteCrear(datos) {
@@ -17,6 +18,7 @@ function soporteCrear(datos) {
     datos = datos || {};
     validarSoporte_(datos);
     var fechaInicio = (datos.FechaInicio || nowIso()).slice(0, 10);
+    var mesesContrato = MESES_POR_DURACION_SOPORTE[datos.DuracionContrato];
     var registro = {
       Id: newId(),
       ClienteId: datos.ClienteId,
@@ -24,9 +26,10 @@ function soporteCrear(datos) {
       Concepto: datos.Concepto,
       Alcance: datos.Alcance || '',
       Monto: round2_(datos.Monto),
-      Frecuencia: datos.Frecuencia,
+      DuracionContrato: datos.DuracionContrato,
       FechaInicio: fechaInicio,
-      ProximoVencimiento: datos.ProximoVencimiento || avanzarFecha_(fechaInicio, datos.Frecuencia),
+      FechaFin: datos.FechaFin || avanzarMeses_(fechaInicio, mesesContrato),
+      ProximoPago: datos.ProximoPago || avanzarMeses_(fechaInicio, 1),
       Estado: 'Activo',
       Notas: datos.Notas || '',
       FechaCreacion: nowIso()
@@ -61,8 +64,10 @@ function soporteRegistrarPago(id) {
     var contrato = sheetToObjects(sheet).filter(function (s) { return s.Id === id; })[0];
     if (!contrato) throw new Error('Contrato de soporte no encontrado.');
 
-    var nuevoVencimiento = avanzarFecha_(contrato.ProximoVencimiento, contrato.Frecuencia);
-    updateRowById(sheet, id, { ProximoVencimiento: nuevoVencimiento, Estado: 'Activo' });
+    var nuevoProximoPago = avanzarMeses_(contrato.ProximoPago, 1);
+    var pasoElFinDelContrato = contrato.FechaFin && diferenciaDias_(nuevoProximoPago, contrato.FechaFin) < 0;
+    var nuevoEstado = pasoElFinDelContrato ? 'Finalizado' : 'Activo';
+    updateRowById(sheet, id, { ProximoPago: nuevoProximoPago, Estado: nuevoEstado });
 
     appendRow(sheet_('Ventas'), {
       Id: newId(),
@@ -79,7 +84,7 @@ function soporteRegistrarPago(id) {
       FechaCreacion: nowIso()
     });
 
-    return { Id: id, ProximoVencimiento: nuevoVencimiento };
+    return { Id: id, ProximoPago: nuevoProximoPago, Estado: nuevoEstado };
   });
 }
 
@@ -88,7 +93,7 @@ function soporteAlertas() {
   var alertas = contratos.map(function (s) {
     var copia = {};
     Object.keys(s).forEach(function (k) { copia[k] = s[k]; });
-    copia.diasRestantes = diasDesdeHoy_(s.ProximoVencimiento);
+    copia.diasRestantes = diasDesdeHoy_(s.ProximoPago);
     return copia;
   }).filter(function (s) { return s.diasRestantes <= UMBRAL_DIAS_ALERTA_SUSCRIPCION; });
   alertas.sort(function (a, b) { return a.diasRestantes - b.diasRestantes; });

@@ -32,7 +32,7 @@ function configurarProyecto() {
     'Proyectos': ['Id', 'ClienteId', 'VentaId', 'Nombre', 'Descripcion', 'Alcance', 'Stack', 'FechaInicio', 'FechaEntrega', 'Estado', 'UrlRepo', 'UrlDemo', 'Notas', 'FechaCreacion'],
     'ProyectoEntregables': ['Id', 'ProyectoId', 'Titulo', 'Descripcion', 'Estado'],
     'Suscripciones': ['Id', 'ClienteId', 'ProyectoId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
-    'Soporte': ['Id', 'ClienteId', 'ProyectoId', 'Concepto', 'Alcance', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
+    'Soporte': ['Id', 'ClienteId', 'ProyectoId', 'Concepto', 'Alcance', 'Monto', 'DuracionContrato', 'FechaInicio', 'FechaFin', 'ProximoPago', 'Estado', 'Notas', 'FechaCreacion'],
     'Config': ['Clave', 'Valor']
   };
 
@@ -211,5 +211,21 @@ function agregarTituloAEntregables() {
  * alertas que Suscripciones).
  */
 function agregarModuloSoporte() {
-  crearPestanaSiNoExiste_('Soporte', ['Id', 'ClienteId', 'ProyectoId', 'Concepto', 'Alcance', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion']);
+  crearPestanaSiNoExiste_('Soporte', ['Id', 'ClienteId', 'ProyectoId', 'Concepto', 'Alcance', 'Monto', 'DuracionContrato', 'FechaInicio', 'FechaFin', 'ProximoPago', 'Estado', 'Notas', 'FechaCreacion']);
+}
+
+/**
+ * Migración de un solo uso: si ya ejecutaste agregarModuloSoporte() antes
+ * de este cambio, la pestaña quedó con columnas viejas ("Frecuencia" /
+ * "ProximoVencimiento"). Esto agrega las columnas nuevas que representan
+ * un contrato con plazo fijo (ej. trimestral) pero cobro mensual:
+ * "DuracionContrato", "FechaFin" y "ProximoPago". Las columnas viejas no
+ * se borran (para no perder datos), pero ya no las usa el sistema — si
+ * tenías un contrato de prueba creado, edítalo para llenar los campos
+ * nuevos (o bórralo y créalo de nuevo).
+ */
+function agregarDuracionYFinDeContratoASoporte() {
+  agregarColumnaSiNoExiste_('Soporte', 'DuracionContrato');
+  agregarColumnaSiNoExiste_('Soporte', 'FechaFin');
+  agregarColumnaSiNoExiste_('Soporte', 'ProximoPago');
 }

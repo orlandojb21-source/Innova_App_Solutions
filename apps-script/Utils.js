@@ -126,6 +126,23 @@ function diasDesdeHoy_(fechaIso) {
   return Math.round((fecha - hoy) / msPorDia);
 }
 
+/** Días entre dos fechas cualesquiera (fechaFin - fechaInicio), comparando
+ *  solo el día calendario. Negativo si fechaFin es anterior a fechaInicio. */
+function diferenciaDias_(fechaInicio, fechaFin) {
+  var msPorDia = 24 * 60 * 60 * 1000;
+  var a = new Date(String(fechaInicio).slice(0, 10) + 'T00:00:00Z');
+  var b = new Date(String(fechaFin).slice(0, 10) + 'T00:00:00Z');
+  return Math.round((b - a) / msPorDia);
+}
+
+function avanzarMeses_(fechaValor, meses) {
+  var fechaBase = Utilities.formatDate(new Date(fechaValor), 'America/Panama', 'yyyy-MM-dd');
+  var partes = fechaBase.split('-');
+  var d = new Date(Date.UTC(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2])));
+  d.setUTCMonth(d.getUTCMonth() + Number(meses || 0));
+  return Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd');
+}
+
 function configObtener() {
   var sheet = sheet_('Config');
   var data = sheet.getDataRange().getValues();
