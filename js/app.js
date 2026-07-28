@@ -4,6 +4,7 @@ const VISTAS = {
   cotizaciones: renderCotizaciones,
   ventas: renderVentas,
   suscripciones: renderSuscripciones,
+  soporte: renderSoporte,
   proyectos: renderProyectos,
   ajustes: renderAjustes
 };

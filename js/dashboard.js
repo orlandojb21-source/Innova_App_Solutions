@@ -32,8 +32,16 @@ async function renderDashboard(contenedor) {
         <div class="valor">${r.suscripcionesPorVencer}</div>
         <div class="etiqueta">Suscripciones por vencer</div>
       </div>
+      <div class="tarjeta-resumen ${r.soportePorVencer > 0 ? 'naranja' : ''}" id="tarjeta-soporte-vencer" style="cursor:pointer">
+        <div class="valor">${r.soportePorVencer}</div>
+        <div class="etiqueta">Soporte por vencer</div>
+      </div>
     `;
     qs('#tarjeta-suscripciones-vencer', contenedor).addEventListener('click', async () => {
+      await actualizarCampanitaAlertas();
+      abrirPanelAlertas();
+    });
+    qs('#tarjeta-soporte-vencer', contenedor).addEventListener('click', async () => {
       await actualizarCampanitaAlertas();
       abrirPanelAlertas();
     });

@@ -32,6 +32,7 @@ function configurarProyecto() {
     'Proyectos': ['Id', 'ClienteId', 'VentaId', 'Nombre', 'Descripcion', 'Alcance', 'Stack', 'FechaInicio', 'FechaEntrega', 'Estado', 'UrlRepo', 'UrlDemo', 'Notas', 'FechaCreacion'],
     'ProyectoEntregables': ['Id', 'ProyectoId', 'Titulo', 'Descripcion', 'Estado'],
     'Suscripciones': ['Id', 'ClienteId', 'ProyectoId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
+    'Soporte': ['Id', 'ClienteId', 'ProyectoId', 'Concepto', 'Alcance', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
     'Config': ['Clave', 'Valor']
   };
 
@@ -202,4 +203,13 @@ function agregarVentaAProyectos() {
  */
 function agregarTituloAEntregables() {
   agregarColumnaSiNoExiste_('ProyectoEntregables', 'Titulo');
+}
+
+/**
+ * Migración de un solo uso: crea la pestaña "Soporte" (contratos de
+ * soporte/mantenimiento recurrentes, con la misma mecánica de cobro y
+ * alertas que Suscripciones).
+ */
+function agregarModuloSoporte() {
+  crearPestanaSiNoExiste_('Soporte', ['Id', 'ClienteId', 'ProyectoId', 'Concepto', 'Alcance', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion']);
 }

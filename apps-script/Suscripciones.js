@@ -80,6 +80,8 @@ function suscripcionesRegistrarPago(id) {
       CotizacionId: '',
       Concepto: 'Suscripción: ' + suscripcion.Producto,
       Monto: suscripcion.Monto,
+      MontoPagado: suscripcion.Monto,
+      FacturaFolio: '',
       Fecha: nowIso(),
       Estado: 'Pagado',
       MetodoPago: '',
