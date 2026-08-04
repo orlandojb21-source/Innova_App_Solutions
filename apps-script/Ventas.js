@@ -5,7 +5,7 @@ function calcularEstadoVenta_(monto, montoPagado) {
 }
 
 function ventasListar() {
-  var ventas = sheetToObjects(sheet_('Ventas'));
+  var ventas = sheetToObjectsActivos(sheet_('Ventas'));
   return ventas.sort(function (a, b) { return new Date(b.Fecha) - new Date(a.Fecha); });
 }
 
@@ -61,7 +61,7 @@ function ventasActualizar(id, cambios) {
 function ventasEliminar(id) {
   return withLock(function () {
     if (!id) throw new Error('Falta el Id de la venta.');
-    deleteRowById(sheet_('Ventas'), id);
+    marcarEliminado_(sheet_('Ventas'), id);
     return { Id: id };
   });
 }
@@ -142,7 +142,7 @@ function crearVentaDesdeCotizacionSinLock_(cotizacionId) {
   var cot = sheetToObjects(sheet_('Cotizaciones')).filter(function (c) { return c.Id === cotizacionId; })[0];
   if (!cot) throw new Error('Cotización no encontrada.');
   if (cot.Estado !== 'Aceptada') throw new Error('Solo se puede convertir en venta una cotización Aceptada.');
-  var yaExiste = sheetToObjects(sheet_('Ventas')).some(function (v) { return v.CotizacionId === cotizacionId; });
+  var yaExiste = sheetToObjectsActivos(sheet_('Ventas')).some(function (v) { return v.CotizacionId === cotizacionId; });
   if (yaExiste) throw new Error('Ya existe una venta generada para esta cotización.');
   var registro = {
     Id: newId(),

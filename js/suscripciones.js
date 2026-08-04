@@ -166,10 +166,10 @@ async function registrarPagoSuscripcion(id) {
 }
 
 async function eliminarSuscripcion(id) {
-  if (!confirm('¿Eliminar esta suscripción?')) return;
+  if (!confirm('¿Enviar esta suscripción a la papelera? Podrás recuperarla después.')) return;
   try {
     await llamarApi('suscripciones.eliminar', { Id: id });
-    mostrarToast('Suscripción eliminada.', 'exito');
+    mostrarToast('Suscripción movida a la papelera.', 'exito');
     cargarTablaSuscripciones();
     actualizarCampanitaAlertas();
   } catch (e) {

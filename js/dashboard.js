@@ -20,6 +20,14 @@ async function renderDashboard(contenedor) {
         <div class="valor">${formatMoney(r.ventasPendientesMonto, moneda)}</div>
         <div class="etiqueta">Por cobrar</div>
       </div>
+      <div class="tarjeta-resumen">
+        <div class="valor">${formatMoney(r.gastosDelMes, moneda)}</div>
+        <div class="etiqueta">Gastos de este mes</div>
+      </div>
+      <div class="tarjeta-resumen ${r.gananciaDelMes >= 0 ? 'verde' : 'naranja'}">
+        <div class="valor">${formatMoney(r.gananciaDelMes, moneda)}</div>
+        <div class="etiqueta">Ganancia de este mes</div>
+      </div>
       <div class="tarjeta-resumen cian">
         <div class="valor">${r.proyectosActivos}</div>
         <div class="etiqueta">Proyectos activos</div>

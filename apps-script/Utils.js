@@ -81,6 +81,22 @@ function deleteRowById(sheet, id) {
   sheet.deleteRow(rowIndex);
 }
 
+/** Igual que sheetToObjects, pero excluye filas marcadas como eliminadas
+ *  (papelera) — es lo que deben usar todas las funciones "listar". */
+function sheetToObjectsActivos(sheet) {
+  return sheetToObjects(sheet).filter(function (r) { return r.Eliminado !== true; });
+}
+
+/** Borrado suave: marca la fila como eliminada (Eliminado + FechaEliminado)
+ *  en vez de borrarla de verdad, para poder recuperarla desde la Papelera. */
+function marcarEliminado_(sheet, id) {
+  updateRowById(sheet, id, { Eliminado: true, FechaEliminado: nowIso() });
+}
+
+function restaurarEliminado_(sheet, id) {
+  updateRowById(sheet, id, { Eliminado: false, FechaEliminado: '' });
+}
+
 /** Antídoto contra inyección de fórmulas (CSV/Sheets injection): si el texto
  *  empieza con un caracter que Sheets interpretaría como fórmula, se antepone
  *  un apóstrofo para forzar texto plano. */

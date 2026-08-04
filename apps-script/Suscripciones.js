@@ -2,7 +2,7 @@ var UMBRAL_DIAS_ALERTA_SUSCRIPCION = 5;
 var FRECUENCIAS_SUSCRIPCION = ['Mensual', 'Anual'];
 
 function suscripcionesListar() {
-  var suscripciones = sheetToObjects(sheet_('Suscripciones'));
+  var suscripciones = sheetToObjectsActivos(sheet_('Suscripciones'));
   return suscripciones.sort(function (a, b) { return new Date(a.ProximoVencimiento) - new Date(b.ProximoVencimiento); });
 }
 
@@ -59,7 +59,7 @@ function suscripcionesActualizar(id, cambios) {
 function suscripcionesEliminar(id) {
   return withLock(function () {
     if (!id) throw new Error('Falta el Id de la suscripción.');
-    deleteRowById(sheet_('Suscripciones'), id);
+    marcarEliminado_(sheet_('Suscripciones'), id);
     return { Id: id };
   });
 }
@@ -94,7 +94,7 @@ function suscripcionesRegistrarPago(id) {
 }
 
 function suscripcionesAlertas() {
-  var suscripciones = sheetToObjects(sheet_('Suscripciones')).filter(function (s) { return s.Estado === 'Activa'; });
+  var suscripciones = sheetToObjectsActivos(sheet_('Suscripciones')).filter(function (s) { return s.Estado === 'Activa'; });
   var alertas = suscripciones.map(function (s) {
     var copia = {};
     Object.keys(s).forEach(function (k) { copia[k] = s[k]; });

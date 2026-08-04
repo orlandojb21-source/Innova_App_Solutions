@@ -2,7 +2,7 @@ var DURACIONES_SOPORTE = ['Mensual', 'Trimestral', 'Semestral', 'Anual'];
 var MESES_POR_DURACION_SOPORTE = { Mensual: 1, Trimestral: 3, Semestral: 6, Anual: 12 };
 
 function soporteListar() {
-  var contratos = sheetToObjects(sheet_('Soporte'));
+  var contratos = sheetToObjectsActivos(sheet_('Soporte'));
   return contratos.sort(function (a, b) { return new Date(a.ProximoPago) - new Date(b.ProximoPago); });
 }
 
@@ -52,7 +52,7 @@ function soporteActualizar(id, cambios) {
 function soporteEliminar(id) {
   return withLock(function () {
     if (!id) throw new Error('Falta el Id del contrato de soporte.');
-    deleteRowById(sheet_('Soporte'), id);
+    marcarEliminado_(sheet_('Soporte'), id);
     return { Id: id };
   });
 }
@@ -89,7 +89,7 @@ function soporteRegistrarPago(id) {
 }
 
 function soporteAlertas() {
-  var contratos = sheetToObjects(sheet_('Soporte')).filter(function (s) { return s.Estado === 'Activo'; });
+  var contratos = sheetToObjectsActivos(sheet_('Soporte')).filter(function (s) { return s.Estado === 'Activo'; });
   var alertas = contratos.map(function (s) {
     var copia = {};
     Object.keys(s).forEach(function (k) { copia[k] = s[k]; });

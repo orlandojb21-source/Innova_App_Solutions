@@ -1,7 +1,7 @@
 var ESTADOS_COTIZACION = ['Borrador', 'Enviada', 'Aceptada', 'Rechazada'];
 
 function cotizacionesListar() {
-  var cotizaciones = sheetToObjects(sheet_('Cotizaciones'));
+  var cotizaciones = sheetToObjectsActivos(sheet_('Cotizaciones'));
   return cotizaciones.sort(function (a, b) { return new Date(b.FechaCreacion) - new Date(a.FechaCreacion); });
 }
 
@@ -134,8 +134,7 @@ function cotizacionesCambiarEstado(id, estado) {
 function cotizacionesEliminar(id) {
   return withLock(function () {
     if (!id) throw new Error('Falta el Id de la cotización.');
-    deleteRowById(sheet_('Cotizaciones'), id);
-    reemplazarItems_(id, []);
+    marcarEliminado_(sheet_('Cotizaciones'), id);
     return { Id: id };
   });
 }

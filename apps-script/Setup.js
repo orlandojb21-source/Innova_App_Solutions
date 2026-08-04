@@ -24,15 +24,16 @@ function configurarProyecto() {
   var ss = SpreadsheetApp.create('IAS Panel DB');
 
   var esquemas = {
-    'Clientes': ['Id', 'Nombre', 'Empresa', 'Telefono', 'Email', 'Direccion', 'Notas', 'FechaCreacion'],
-    'Cotizaciones': ['Id', 'Folio', 'ClienteId', 'Fecha', 'ValidezDias', 'Subtotal', 'DescuentoPct', 'ImpuestoPct', 'Total', 'Estado', 'Notas', 'FechaCreacion'],
+    'Clientes': ['Id', 'Nombre', 'Empresa', 'Telefono', 'Email', 'Direccion', 'Notas', 'FechaCreacion', 'Eliminado', 'FechaEliminado'],
+    'Cotizaciones': ['Id', 'Folio', 'ClienteId', 'Fecha', 'ValidezDias', 'Subtotal', 'DescuentoPct', 'ImpuestoPct', 'Total', 'Estado', 'Notas', 'FechaCreacion', 'Eliminado', 'FechaEliminado'],
     'CotizacionItems': ['Id', 'CotizacionId', 'Descripcion', 'Cantidad', 'PrecioUnitario', 'Subtotal'],
-    'Ventas': ['Id', 'ClienteId', 'CotizacionId', 'Concepto', 'Monto', 'MontoPagado', 'FacturaFolio', 'Fecha', 'Estado', 'MetodoPago', 'Notas', 'FechaCreacion'],
+    'Ventas': ['Id', 'ClienteId', 'CotizacionId', 'Concepto', 'Monto', 'MontoPagado', 'FacturaFolio', 'Fecha', 'Estado', 'MetodoPago', 'Notas', 'FechaCreacion', 'Eliminado', 'FechaEliminado'],
     'Abonos': ['Id', 'VentaId', 'Folio', 'Monto', 'Fecha', 'FechaCreacion'],
-    'Proyectos': ['Id', 'ClienteId', 'VentaId', 'Nombre', 'Descripcion', 'Alcance', 'Stack', 'FechaInicio', 'FechaEntrega', 'Estado', 'UrlRepo', 'UrlDemo', 'Notas', 'FechaCreacion'],
+    'Proyectos': ['Id', 'ClienteId', 'VentaId', 'Nombre', 'Descripcion', 'Alcance', 'Stack', 'FechaInicio', 'FechaEntrega', 'Estado', 'UrlRepo', 'UrlDemo', 'Notas', 'FechaCreacion', 'Eliminado', 'FechaEliminado'],
     'ProyectoEntregables': ['Id', 'ProyectoId', 'Titulo', 'Descripcion', 'Estado'],
-    'Suscripciones': ['Id', 'ClienteId', 'ProyectoId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion'],
-    'Soporte': ['Id', 'ClienteId', 'ProyectoId', 'Concepto', 'Alcance', 'Monto', 'DuracionContrato', 'FechaInicio', 'FechaFin', 'ProximoPago', 'Estado', 'Notas', 'FechaCreacion'],
+    'Suscripciones': ['Id', 'ClienteId', 'ProyectoId', 'Producto', 'Monto', 'Frecuencia', 'FechaInicio', 'ProximoVencimiento', 'Estado', 'Notas', 'FechaCreacion', 'Eliminado', 'FechaEliminado'],
+    'Soporte': ['Id', 'ClienteId', 'ProyectoId', 'Concepto', 'Alcance', 'Monto', 'DuracionContrato', 'FechaInicio', 'FechaFin', 'ProximoPago', 'Estado', 'Notas', 'FechaCreacion', 'Eliminado', 'FechaEliminado'],
+    'Gastos': ['Id', 'Concepto', 'Categoria', 'Monto', 'Fecha', 'ClienteId', 'ProyectoId', 'Notas', 'FechaCreacion', 'Eliminado', 'FechaEliminado'],
     'Config': ['Clave', 'Valor']
   };
 
@@ -228,4 +229,27 @@ function agregarDuracionYFinDeContratoASoporte() {
   agregarColumnaSiNoExiste_('Soporte', 'DuracionContrato');
   agregarColumnaSiNoExiste_('Soporte', 'FechaFin');
   agregarColumnaSiNoExiste_('Soporte', 'ProximoPago');
+}
+
+/**
+ * Migración de un solo uso: crea la pestaña "Gastos" (costos del negocio:
+ * herramientas, dominios que compras para clientes, publicidad, etc.),
+ * necesaria para saber la ganancia real y no solo lo que factura.
+ */
+function agregarModuloGastos() {
+  crearPestanaSiNoExiste_('Gastos', ['Id', 'Concepto', 'Categoria', 'Monto', 'Fecha', 'ClienteId', 'ProyectoId', 'Notas', 'FechaCreacion', 'Eliminado', 'FechaEliminado']);
+}
+
+/**
+ * Migración de un solo uso: agrega las columnas "Eliminado" y
+ * "FechaEliminado" a Clientes, Cotizaciones, Ventas, Proyectos,
+ * Suscripciones y Soporte, para que "Eliminar" ya no borre de verdad sino
+ * que mande el registro a la Papelera (recuperable). Ejecuta esta función
+ * DESPUÉS de agregarModuloGastos(), no antes.
+ */
+function agregarPapelera() {
+  ['Clientes', 'Cotizaciones', 'Ventas', 'Proyectos', 'Suscripciones', 'Soporte'].forEach(function (nombre) {
+    agregarColumnaSiNoExiste_(nombre, 'Eliminado');
+    agregarColumnaSiNoExiste_(nombre, 'FechaEliminado');
+  });
 }

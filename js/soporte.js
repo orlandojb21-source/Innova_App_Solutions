@@ -174,10 +174,10 @@ async function registrarPagoSoporte(id) {
 }
 
 async function eliminarSoporte(id) {
-  if (!confirm('¿Eliminar este contrato de soporte?')) return;
+  if (!confirm('¿Enviar este contrato de soporte a la papelera? Podrás recuperarlo después.')) return;
   try {
     await llamarApi('soporte.eliminar', { Id: id });
-    mostrarToast('Contrato de soporte eliminado.', 'exito');
+    mostrarToast('Contrato de soporte movido a la papelera.', 'exito');
     cargarTablaSoporte();
     actualizarCampanitaAlertas();
   } catch (e) {

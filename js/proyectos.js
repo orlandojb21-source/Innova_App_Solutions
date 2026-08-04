@@ -289,11 +289,11 @@ async function guardarProyecto(e, id) {
 }
 
 async function eliminarProyecto(id) {
-  if (!confirm('¿Eliminar este proyecto?')) return;
+  if (!confirm('¿Enviar este proyecto a la papelera? Podrás recuperarlo después.')) return;
   try {
     await llamarApi('proyectos.eliminar', { Id: id });
     cerrarModal();
-    mostrarToast('Proyecto eliminado.', 'exito');
+    mostrarToast('Proyecto movido a la papelera.', 'exito');
     cargarListaProyectos();
   } catch (err) {
     mostrarToast(err.message, 'error');

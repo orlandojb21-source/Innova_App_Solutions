@@ -96,10 +96,10 @@ async function guardarCliente(e, id) {
 }
 
 async function eliminarCliente(id) {
-  if (!confirm('¿Eliminar este cliente? Esta acción no se puede deshacer.')) return;
+  if (!confirm('¿Enviar este cliente a la papelera? Podrás recuperarlo después.')) return;
   try {
     await llamarApi('clientes.eliminar', { Id: id });
-    mostrarToast('Cliente eliminado.', 'exito');
+    mostrarToast('Cliente movido a la papelera.', 'exito');
     cargarTablaClientes();
   } catch (err) {
     mostrarToast(err.message, 'error');

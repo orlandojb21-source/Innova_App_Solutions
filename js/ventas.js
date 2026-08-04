@@ -276,10 +276,10 @@ async function descargarFacturaVenta(id, btn) {
 }
 
 async function eliminarVenta(id) {
-  if (!confirm('¿Eliminar esta venta?')) return;
+  if (!confirm('¿Enviar esta venta a la papelera? Podrás recuperarla después.')) return;
   try {
     await llamarApi('ventas.eliminar', { Id: id });
-    mostrarToast('Venta eliminada.', 'exito');
+    mostrarToast('Venta movida a la papelera.', 'exito');
     cargarTablaVentas();
   } catch (err) {
     mostrarToast(err.message, 'error');

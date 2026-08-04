@@ -1,5 +1,5 @@
 function proyectosListar() {
-  var proyectos = sheetToObjects(sheet_('Proyectos'));
+  var proyectos = sheetToObjectsActivos(sheet_('Proyectos'));
   var entregables = sheetToObjects(sheet_('ProyectoEntregables'));
   var conteos = {};
   entregables.forEach(function (e) {
@@ -93,8 +93,7 @@ function proyectosActualizar(id, cambios) {
 function proyectosEliminar(id) {
   return withLock(function () {
     if (!id) throw new Error('Falta el Id del proyecto.');
-    deleteRowById(sheet_('Proyectos'), id);
-    reemplazarEntregables_(id, []);
+    marcarEliminado_(sheet_('Proyectos'), id);
     return { Id: id };
   });
 }

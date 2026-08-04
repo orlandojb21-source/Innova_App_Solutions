@@ -112,6 +112,25 @@ function manejarSolicitud_(e) {
       case 'soporte.alertas':
         return okResponse(soporteAlertas());
 
+      case 'gastos.listar':
+        return okResponse(gastosListar());
+      case 'gastos.crear':
+        return okResponse(gastosCrear(datos));
+      case 'gastos.actualizar':
+        return okResponse(gastosActualizar(datos.Id, datos.cambios));
+      case 'gastos.eliminar':
+        return okResponse(gastosEliminar(datos.Id));
+
+      case 'papelera.listar':
+        return okResponse(papeleraListar());
+      case 'papelera.restaurar':
+        return okResponse(papeleraRestaurar(datos.Sheet, datos.Id));
+      case 'papelera.eliminarDefinitivo':
+        return okResponse(papeleraEliminarDefinitivo(datos.Sheet, datos.Id));
+
+      case 'reportes.resumen':
+        return okResponse(reportesResumen());
+
       case 'config.obtener':
         return okResponse(configObtener());
       case 'config.guardar':
@@ -145,10 +164,11 @@ function obtenerParametros_(e) {
 }
 
 function dashboardResumen() {
-  var cotizaciones = sheetToObjects(sheet_('Cotizaciones'));
-  var ventas = sheetToObjects(sheet_('Ventas'));
-  var proyectos = sheetToObjects(sheet_('Proyectos'));
-  var clientes = sheetToObjects(sheet_('Clientes'));
+  var cotizaciones = sheetToObjectsActivos(sheet_('Cotizaciones'));
+  var ventas = sheetToObjectsActivos(sheet_('Ventas'));
+  var proyectos = sheetToObjectsActivos(sheet_('Proyectos'));
+  var clientes = sheetToObjectsActivos(sheet_('Clientes'));
+  var gastos = sheetToObjectsActivos(sheet_('Gastos'));
 
   var hoy = new Date();
   var inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
@@ -165,12 +185,18 @@ function dashboardResumen() {
     .filter(function (v) { return v.Estado === 'Pendiente' || v.Estado === 'Parcial'; })
     .reduce(function (acc, v) { return acc + Number(v.Monto || 0); }, 0);
 
+  var gastosDelMes = gastos
+    .filter(function (g) { return new Date(g.Fecha) >= inicioMes; })
+    .reduce(function (acc, g) { return acc + Number(g.Monto || 0); }, 0);
+
   var proyectosActivos = proyectos.filter(function (p) { return p.Estado === 'EnProgreso'; }).length;
 
   return {
     cotizacionesPendientes: cotizacionesPendientes,
     ventasDelMes: round2_(ventasDelMes),
     ventasPendientesMonto: round2_(ventasPendientesMonto),
+    gastosDelMes: round2_(gastosDelMes),
+    gananciaDelMes: round2_(ventasDelMes - gastosDelMes),
     proyectosActivos: proyectosActivos,
     totalClientes: clientes.length,
     suscripcionesPorVencer: suscripcionesAlertas().length,

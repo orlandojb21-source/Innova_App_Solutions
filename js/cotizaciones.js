@@ -326,10 +326,10 @@ async function enviarCorreoCotizacion(id, cliente, btn) {
 
 
 async function eliminarCotizacion(id) {
-  if (!confirm('¿Eliminar esta cotización y sus ítems?')) return;
+  if (!confirm('¿Enviar esta cotización a la papelera? Podrás recuperarla después.')) return;
   try {
     await llamarApi('cotizaciones.eliminar', { Id: id });
-    mostrarToast('Cotización eliminada.', 'exito');
+    mostrarToast('Cotización movida a la papelera.', 'exito');
     cargarTablaCotizaciones();
   } catch (e) {
     mostrarToast(e.message, 'error');

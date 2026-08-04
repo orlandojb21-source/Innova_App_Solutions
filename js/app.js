@@ -3,9 +3,12 @@ const VISTAS = {
   clientes: renderClientes,
   cotizaciones: renderCotizaciones,
   ventas: renderVentas,
+  gastos: renderGastos,
   suscripciones: renderSuscripciones,
   soporte: renderSoporte,
   proyectos: renderProyectos,
+  reportes: renderReportes,
+  papelera: renderPapelera,
   ajustes: renderAjustes
 };
 

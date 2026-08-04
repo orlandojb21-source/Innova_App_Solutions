@@ -1,5 +1,5 @@
 function clientesListar() {
-  return sheetToObjects(sheet_('Clientes'));
+  return sheetToObjectsActivos(sheet_('Clientes'));
 }
 
 function clientesCrear(datos) {
@@ -33,7 +33,7 @@ function clientesActualizar(id, cambios) {
 function clientesEliminar(id) {
   return withLock(function () {
     if (!id) throw new Error('Falta el Id del cliente.');
-    deleteRowById(sheet_('Clientes'), id);
+    marcarEliminado_(sheet_('Clientes'), id);
     return { Id: id };
   });
 }
