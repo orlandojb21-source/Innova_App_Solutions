@@ -4,7 +4,7 @@ async function renderDashboard(contenedor) {
     <div class="grid-resumen" id="grid-resumen"><div class="vacio">Cargando…</div></div>
   `;
   try {
-    const config = await llamarApi('config.obtener');
+    const config = await obtenerConfigCache();
     const r = await llamarApi('dashboard.resumen');
     const moneda = config.Moneda || '$';
     qs('#grid-resumen', contenedor).innerHTML = `

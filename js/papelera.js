@@ -53,6 +53,8 @@ async function cargarTablaPapelera(contenedor) {
 async function restaurarDePapelera(sheet, id) {
   try {
     await llamarApi('papelera.restaurar', { Sheet: sheet, Id: id });
+    invalidarCacheClientes();
+    invalidarCacheProyectos();
     mostrarToast('Registro restaurado.', 'exito');
     cargarTablaPapelera();
   } catch (e) {

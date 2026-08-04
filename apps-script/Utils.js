@@ -7,12 +7,19 @@ function getScriptProp_(key) {
   return PropertiesService.getScriptProperties().getProperty(key);
 }
 
+var _ssCache_ = null;
+
+/** Abre el Sheet una sola vez por ejecución y reusa la referencia — abrir
+ *  por Id tiene overhead real, y varias funciones llaman sheet_() varias
+ *  veces dentro de la misma solicitud (ej. dashboardResumen). */
 function ss_() {
+  if (_ssCache_) return _ssCache_;
   var id = getScriptProp_('SHEET_ID');
   if (!id) {
     throw new Error('El proyecto no ha sido configurado. Ejecuta configurarProyecto() desde el editor de Apps Script.');
   }
-  return SpreadsheetApp.openById(id);
+  _ssCache_ = SpreadsheetApp.openById(id);
+  return _ssCache_;
 }
 
 function sheet_(nombre) {

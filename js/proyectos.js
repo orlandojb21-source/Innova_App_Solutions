@@ -280,6 +280,7 @@ async function guardarProyecto(e, id) {
       await llamarApi('proyectos.crear', datos);
     }
     cerrarModal();
+    invalidarCacheProyectos();
     mostrarToast('Proyecto guardado.', 'exito');
     cargarListaProyectos();
   } catch (err) {
@@ -292,6 +293,7 @@ async function eliminarProyecto(id) {
   if (!confirm('¿Enviar este proyecto a la papelera? Podrás recuperarlo después.')) return;
   try {
     await llamarApi('proyectos.eliminar', { Id: id });
+    invalidarCacheProyectos();
     cerrarModal();
     mostrarToast('Proyecto movido a la papelera.', 'exito');
     cargarListaProyectos();
@@ -315,7 +317,7 @@ async function descargarPdfProyecto(id, btn) {
 
 async function obtenerProyectosParaSelect() {
   try {
-    return await llamarApi('proyectos.listar');
+    return await obtenerProyectosCache();
   } catch (e) {
     return [];
   }

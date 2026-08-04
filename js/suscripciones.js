@@ -23,7 +23,7 @@ async function cargarTablaSuscripciones(contenedor) {
       llamarApi('suscripciones.listar'),
       obtenerClientesParaSelect(),
       obtenerProyectosParaSelect(),
-      llamarApi('config.obtener')
+      obtenerConfigCache()
     ]);
     _cacheSuscripciones = suscripciones;
     _cacheSuscripcionesClientes = clientes;

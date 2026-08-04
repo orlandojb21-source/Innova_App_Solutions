@@ -53,6 +53,7 @@ async function guardarAjustes(e) {
   btn.disabled = true;
   try {
     await llamarApi('config.guardar', datos);
+    invalidarCacheConfig();
     mostrarToast('Ajustes guardados.', 'exito');
     _monedaActual = datos.Moneda || '$';
   } catch (err) {

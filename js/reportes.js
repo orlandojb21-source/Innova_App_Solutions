@@ -13,7 +13,7 @@ async function renderReportes(contenedor) {
   const destino = qs('#contenido-reportes', contenedor);
   try {
     const [config, r] = await Promise.all([
-      llamarApi('config.obtener'),
+      obtenerConfigCache(),
       llamarApi('reportes.resumen')
     ]);
     _monedaActual = config.Moneda || '$';

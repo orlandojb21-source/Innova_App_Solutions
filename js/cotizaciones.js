@@ -35,7 +35,7 @@ async function cargarTablaCotizaciones(contenedor) {
     const [cotizaciones, clientes, config] = await Promise.all([
       llamarApi('cotizaciones.listar'),
       obtenerClientesParaSelect(),
-      llamarApi('config.obtener')
+      obtenerConfigCache()
     ]);
     _cacheCotizaciones = cotizaciones;
     _cacheCotizacionesClientes = clientes;

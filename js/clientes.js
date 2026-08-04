@@ -87,6 +87,7 @@ async function guardarCliente(e, id) {
       await llamarApi('clientes.crear', datos);
     }
     cerrarModal();
+    invalidarCacheClientes();
     mostrarToast('Cliente guardado.', 'exito');
     cargarTablaClientes();
   } catch (err) {
@@ -99,6 +100,7 @@ async function eliminarCliente(id) {
   if (!confirm('¿Enviar este cliente a la papelera? Podrás recuperarlo después.')) return;
   try {
     await llamarApi('clientes.eliminar', { Id: id });
+    invalidarCacheClientes();
     mostrarToast('Cliente movido a la papelera.', 'exito');
     cargarTablaClientes();
   } catch (err) {
@@ -108,7 +110,7 @@ async function eliminarCliente(id) {
 
 async function obtenerClientesParaSelect() {
   try {
-    return await llamarApi('clientes.listar');
+    return await obtenerClientesCache();
   } catch (e) {
     return [];
   }

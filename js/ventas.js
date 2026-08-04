@@ -29,7 +29,7 @@ async function cargarTablaVentas(contenedor) {
     const [ventas, clientes, config] = await Promise.all([
       llamarApi('ventas.listar'),
       obtenerClientesParaSelect(),
-      llamarApi('config.obtener')
+      obtenerConfigCache()
     ]);
     _cacheVentas = ventas;
     _cacheVentasClientes = clientes;

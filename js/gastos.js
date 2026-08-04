@@ -23,7 +23,7 @@ async function cargarTablaGastos(contenedor) {
       llamarApi('gastos.listar'),
       obtenerClientesParaSelect(),
       obtenerProyectosParaSelect(),
-      llamarApi('config.obtener')
+      obtenerConfigCache()
     ]);
     _cacheGastos = gastos;
     _cacheGastosClientes = clientes;

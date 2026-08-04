@@ -1,5 +1,40 @@
 let _monedaActual = '$';
 
+// Caché en sesión de datos que casi no cambian (Config/Clientes/Proyectos),
+// para no volver a pedirlos cada vez que se abre una pantalla. Se invalida
+// solo cuando algo los modifica de verdad (guardar/eliminar/restaurar).
+let _cacheGlobalConfig = null;
+let _cacheGlobalClientes = null;
+let _cacheGlobalProyectos = null;
+
+async function obtenerConfigCache() {
+  if (!_cacheGlobalConfig) {
+    _cacheGlobalConfig = await llamarApi('config.obtener');
+  }
+  _monedaActual = _cacheGlobalConfig.Moneda || '$';
+  return _cacheGlobalConfig;
+}
+
+function invalidarCacheConfig() { _cacheGlobalConfig = null; }
+
+async function obtenerClientesCache() {
+  if (!_cacheGlobalClientes) {
+    _cacheGlobalClientes = await llamarApi('clientes.listar').catch(() => []);
+  }
+  return _cacheGlobalClientes;
+}
+
+function invalidarCacheClientes() { _cacheGlobalClientes = null; }
+
+async function obtenerProyectosCache() {
+  if (!_cacheGlobalProyectos) {
+    _cacheGlobalProyectos = await llamarApi('proyectos.listar').catch(() => []);
+  }
+  return _cacheGlobalProyectos;
+}
+
+function invalidarCacheProyectos() { _cacheGlobalProyectos = null; }
+
 function esc(valor) {
   if (valor === undefined || valor === null) return '';
   return String(valor)

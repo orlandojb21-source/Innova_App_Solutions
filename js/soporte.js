@@ -23,7 +23,7 @@ async function cargarTablaSoporte(contenedor) {
       llamarApi('soporte.listar'),
       obtenerClientesParaSelect(),
       obtenerProyectosParaSelect(),
-      llamarApi('config.obtener')
+      obtenerConfigCache()
     ]);
     _cacheSoporte = contratos;
     _cacheSoporteClientes = clientes;
