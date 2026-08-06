@@ -139,13 +139,26 @@ function newId() { return Utilities.getUuid(); }
 function nowIso() { return new Date().toISOString(); }
 function round2_(n) { return Math.round((Number(n) || 0) * 100) / 100; }
 
+/** Sheets entrega Date real (no string) para columnas con formato de fecha,
+ *  y ese objeto se construye en la zona horaria del script — por eso se
+ *  normaliza con esa misma zona, para no perder ni ganar un día. Si ya
+ *  llega como string "yyyy-MM-dd" (p.ej. desde un <input type=date>), se
+ *  usa tal cual. Nunca se debe hacer new Date(string) + otra zona horaria,
+ *  porque desplaza la fecha un día (bug ya visto en el PDF de cotización). */
+function normalizarFechaSoloDia_(valor) {
+  if (valor instanceof Date) {
+    return Utilities.formatDate(valor, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  }
+  return String(valor).slice(0, 10);
+}
+
 /** Días de diferencia entre hoy (zona horaria de Panamá) y una fecha
  *  "yyyy-MM-dd", comparando solo el día calendario (evita bugs de horas). */
 function diasDesdeHoy_(fechaIso) {
   var msPorDia = 24 * 60 * 60 * 1000;
   var hoyStr = Utilities.formatDate(new Date(), 'America/Panama', 'yyyy-MM-dd');
   var hoy = new Date(hoyStr + 'T00:00:00Z');
-  var fecha = new Date(String(fechaIso).slice(0, 10) + 'T00:00:00Z');
+  var fecha = new Date(normalizarFechaSoloDia_(fechaIso) + 'T00:00:00Z');
   return Math.round((fecha - hoy) / msPorDia);
 }
 
@@ -153,14 +166,13 @@ function diasDesdeHoy_(fechaIso) {
  *  solo el día calendario. Negativo si fechaFin es anterior a fechaInicio. */
 function diferenciaDias_(fechaInicio, fechaFin) {
   var msPorDia = 24 * 60 * 60 * 1000;
-  var a = new Date(String(fechaInicio).slice(0, 10) + 'T00:00:00Z');
-  var b = new Date(String(fechaFin).slice(0, 10) + 'T00:00:00Z');
+  var a = new Date(normalizarFechaSoloDia_(fechaInicio) + 'T00:00:00Z');
+  var b = new Date(normalizarFechaSoloDia_(fechaFin) + 'T00:00:00Z');
   return Math.round((b - a) / msPorDia);
 }
 
 function avanzarMeses_(fechaValor, meses) {
-  var fechaBase = Utilities.formatDate(new Date(fechaValor), 'America/Panama', 'yyyy-MM-dd');
-  var partes = fechaBase.split('-');
+  var partes = normalizarFechaSoloDia_(fechaValor).split('-');
   var d = new Date(Date.UTC(Number(partes[0]), Number(partes[1]) - 1, Number(partes[2])));
   d.setUTCMonth(d.getUTCMonth() + Number(meses || 0));
   return Utilities.formatDate(d, 'UTC', 'yyyy-MM-dd');

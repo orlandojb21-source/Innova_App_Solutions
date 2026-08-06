@@ -7,7 +7,7 @@ function suscripcionesListar() {
 }
 
 function avanzarFecha_(fechaIso, frecuencia) {
-  var d = new Date(String(fechaIso).slice(0, 10) + 'T00:00:00Z');
+  var d = new Date(normalizarFechaSoloDia_(fechaIso) + 'T00:00:00Z');
   if (frecuencia === 'Anual') {
     d.setUTCFullYear(d.getUTCFullYear() + 1);
   } else {
