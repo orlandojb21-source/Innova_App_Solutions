@@ -59,12 +59,19 @@ function ventasGenerarFacturaPdf(ventaId) {
   agregarBarraSeccion_(body, 'CLIENTE');
   agregarDatosCliente_(body, cliente);
   body.appendParagraph(' ').setFontSize(6);
-  agregarTablaItems_(body, [{
-    Descripcion: venta.Concepto,
-    Cantidad: 1,
-    PrecioUnitario: venta.Monto,
-    Subtotal: venta.Monto
-  }], moneda);
+
+  // Si la venta viene de una cotización, se detalla ítem por ítem en vez de
+  // una sola línea con el nombre de la cotización — así el cliente ve qué pagó.
+  var itemsFactura = venta.CotizacionId ? itemsDeCotizacion_(venta.CotizacionId) : [];
+  if (!itemsFactura.length) {
+    itemsFactura = [{
+      Descripcion: venta.Concepto,
+      Cantidad: 1,
+      PrecioUnitario: venta.Monto,
+      Subtotal: venta.Monto
+    }];
+  }
+  agregarTablaItems_(body, itemsFactura, moneda);
 
   body.appendParagraph(' ').setFontSize(6);
   agregarLineaTotal_(body, 'TOTAL PAGADO', moneda + Number(venta.Monto).toFixed(2), true);
