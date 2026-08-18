@@ -55,7 +55,7 @@ function ventasGenerarFacturaPdf(ventaId) {
     ['Folio', venta.FacturaFolio],
     ['Fecha', formatearFecha_(venta.Fecha)],
     ['Estado', 'PAGADO']
-  ]);
+  ], { documentoNoFiscal: true });
   agregarBarraSeccion_(body, 'CLIENTE');
   agregarDatosCliente_(body, cliente);
   body.appendParagraph(' ').setFontSize(6);
@@ -88,7 +88,7 @@ function ventasGenerarReciboPdf(abonoId) {
   agregarEncabezadoDocumento_(body, config, 'RECIBO', [
     ['Folio', abono.Folio],
     ['Fecha', formatearFecha_(abono.Fecha)]
-  ]);
+  ], { documentoNoFiscal: true });
   agregarBarraSeccion_(body, 'CLIENTE');
   agregarDatosCliente_(body, cliente);
   body.appendParagraph(' ').setFontSize(8);
@@ -194,7 +194,8 @@ function proyectosGenerarPdf(proyectoId) {
 
 /* ---------- Helpers compartidos de armado del documento ---------- */
 
-function agregarEncabezadoDocumento_(body, config, titulo, lineasMeta) {
+function agregarEncabezadoDocumento_(body, config, titulo, lineasMeta, opts) {
+  opts = opts || {};
   insertarLogoCentrado_(body, config.LogoUrl);
   body.appendParagraph(' ').setFontSize(6);
 
@@ -214,6 +215,12 @@ function agregarEncabezadoDocumento_(body, config, titulo, lineasMeta) {
   var textoTitulo = pTitulo.editAsText();
   textoTitulo.setText(titulo);
   textoTitulo.setBold(true).setFontSize(16).setForegroundColor(COLOR_MARCA);
+
+  if (opts.documentoNoFiscal) {
+    var pNoFiscal = filaTitulo.getCell(0, 1).appendParagraph('Documento No Fiscal');
+    pNoFiscal.setAlignment(DocumentApp.HorizontalAlignment.RIGHT);
+    pNoFiscal.editAsText().setItalic(true).setFontSize(9).setForegroundColor('#777777');
+  }
 
   // Fila 2: tus datos (izq) + metadata del documento (der).
   var filaDatos = body.appendTable([['', '']]);
