@@ -4,10 +4,17 @@ function claveMes_(fechaValor) {
   return normalizarFechaSoloDia_(fechaValor).slice(0, 7);
 }
 
-function reportesResumen() {
+/**
+ * Ingresos reales por mes ("yyyy-MM" -> monto cobrado ese mes), en base a
+ * cuándo entró el dinero de verdad: cada abono en su propia fecha, y lo que
+ * se pagó de una sola vez al crear la venta (sin pasar por "Registrar
+ * abono") en la fecha de la venta. Así, si el primer abono fue en julio y
+ * el pago final en agosto, cada mes refleja solo lo que se cobró ese mes.
+ * Compartida entre reportesResumen() y dashboardResumen() para que ambos
+ * cuenten el dinero exactamente igual.
+ */
+function ingresosPorMes_() {
   var ventas = sheetToObjectsActivos(sheet_('Ventas'));
-  var gastos = sheetToObjectsActivos(sheet_('Gastos'));
-  var clientes = sheetToObjectsActivos(sheet_('Clientes'));
   var abonos = sheetToObjects(sheet_('Abonos'));
 
   var abonosPorVenta = {};
@@ -15,29 +22,39 @@ function reportesResumen() {
     (abonosPorVenta[a.VentaId] = abonosPorVenta[a.VentaId] || []).push(a);
   });
 
-  var meses = {};
-  function celda_(clave) {
-    if (!meses[clave]) meses[clave] = { ventas: 0, gastos: 0 };
-    return meses[clave];
+  var porMes = {};
+  function sumar_(clave, monto) {
+    porMes[clave] = round2_((porMes[clave] || 0) + monto);
   }
 
-  // El ingreso se cuenta en el mes en que el dinero realmente entró: cada
-  // abono en su propia fecha, y lo que se pagó de una sola vez al crear la
-  // venta (sin pasar por "Registrar abono") en la fecha de la venta. Así,
-  // si el primer abono fue en julio y el pago final en agosto, cada mes
-  // muestra solo lo que efectivamente cobraste ese mes.
   ventas.forEach(function (v) {
     var pagado = round2_(v.MontoPagado || 0);
     if (pagado <= 0) return;
     var abonosVenta = abonosPorVenta[v.Id] || [];
     var sumaAbonos = round2_(abonosVenta.reduce(function (acc, a) { return acc + Number(a.Monto || 0); }, 0));
     abonosVenta.forEach(function (a) {
-      celda_(claveMes_(a.Fecha)).ventas += Number(a.Monto || 0);
+      sumar_(claveMes_(a.Fecha), Number(a.Monto || 0));
     });
     var pagoDirecto = round2_(pagado - sumaAbonos);
-    if (pagoDirecto > 0) {
-      celda_(claveMes_(v.Fecha)).ventas += pagoDirecto;
-    }
+    if (pagoDirecto > 0) sumar_(claveMes_(v.Fecha), pagoDirecto);
+  });
+
+  return porMes;
+}
+
+function reportesResumen() {
+  var ventas = sheetToObjectsActivos(sheet_('Ventas'));
+  var gastos = sheetToObjectsActivos(sheet_('Gastos'));
+  var clientes = sheetToObjectsActivos(sheet_('Clientes'));
+  var ingresos = ingresosPorMes_();
+
+  var meses = {};
+  function celda_(clave) {
+    if (!meses[clave]) meses[clave] = { ventas: 0, gastos: 0 };
+    return meses[clave];
+  }
+  Object.keys(ingresos).forEach(function (clave) {
+    celda_(clave).ventas = ingresos[clave];
   });
   gastos.forEach(function (g) {
     celda_(claveMes_(g.Fecha)).gastos += Number(g.Monto || 0);

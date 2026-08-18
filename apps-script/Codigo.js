@@ -170,23 +170,22 @@ function dashboardResumen() {
   var clientes = sheetToObjectsActivos(sheet_('Clientes'));
   var gastos = sheetToObjectsActivos(sheet_('Gastos'));
 
-  var hoy = new Date();
-  var inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  var claveMesActual = claveMes_(nowIso());
 
   var cotizacionesPendientes = cotizaciones.filter(function (c) {
     return c.Estado === 'Enviada' || c.Estado === 'Borrador';
   }).length;
 
-  var ventasDelMes = ventas
-    .filter(function (v) { return new Date(v.Fecha) >= inicioMes; })
-    .reduce(function (acc, v) { return acc + Number(v.Monto || 0); }, 0);
+  // Cash-basis: cuenta lo que realmente se cobró este mes (por fecha de
+  // cada abono), no lo que se facturó — ver ingresosPorMes_() en Reportes.js.
+  var ventasDelMes = ingresosPorMes_()[claveMesActual] || 0;
 
   var ventasPendientesMonto = ventas
     .filter(function (v) { return v.Estado === 'Pendiente' || v.Estado === 'Parcial'; })
-    .reduce(function (acc, v) { return acc + Number(v.Monto || 0); }, 0);
+    .reduce(function (acc, v) { return acc + (Number(v.Monto || 0) - Number(v.MontoPagado || 0)); }, 0);
 
   var gastosDelMes = gastos
-    .filter(function (g) { return new Date(g.Fecha) >= inicioMes; })
+    .filter(function (g) { return claveMes_(g.Fecha) === claveMesActual; })
     .reduce(function (acc, g) { return acc + Number(g.Monto || 0); }, 0);
 
   var proyectosActivos = proyectos.filter(function (p) { return p.Estado === 'EnProgreso'; }).length;
