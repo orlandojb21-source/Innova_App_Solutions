@@ -62,7 +62,18 @@ function ventasGenerarFacturaPdf(ventaId) {
 
   // Si la venta viene de una cotización, se detalla ítem por ítem en vez de
   // una sola línea con el nombre de la cotización — así el cliente ve qué pagó.
-  var itemsFactura = venta.CotizacionId ? itemsDeCotizacion_(venta.CotizacionId) : [];
+  // Ventas viejas (de antes de guardar CotizacionId) no tienen ese vínculo,
+  // así que como respaldo se busca la cotización por el folio que quedó
+  // escrito en el Concepto ("Cotización COT-2026-0001").
+  var cotizacionId = venta.CotizacionId;
+  if (!cotizacionId) {
+    var folioEnConcepto = String(venta.Concepto || '').match(/COT-\d{4}-\d+/);
+    if (folioEnConcepto) {
+      var cotPorFolio = sheetToObjects(sheet_('Cotizaciones')).filter(function (c) { return c.Folio === folioEnConcepto[0]; })[0];
+      if (cotPorFolio) cotizacionId = cotPorFolio.Id;
+    }
+  }
+  var itemsFactura = cotizacionId ? itemsDeCotizacion_(cotizacionId) : [];
   if (!itemsFactura.length) {
     itemsFactura = [{
       Descripcion: venta.Concepto,

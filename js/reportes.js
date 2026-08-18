@@ -23,7 +23,7 @@ async function renderReportes(contenedor) {
       <div class="tabla-wrap" style="margin-bottom:24px">
         ${r.porMes.length ? `
           <table class="tabla">
-            <thead><tr><th>Mes</th><th>Ventas</th><th>Gastos</th><th>Ganancia</th></tr></thead>
+            <thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Ganancia</th></tr></thead>
             <tbody>
               ${r.porMes.map((m) => `
                 <tr>
