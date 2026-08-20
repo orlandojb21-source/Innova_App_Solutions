@@ -57,8 +57,15 @@ Cambiar la web nunca vuelve a publicar el panel, y viceversa.
    Add New → Project → elegir el repositorio `Innova_App_Solutions` →
    Root Directory: `web` → Framework Preset: *Other* → Deploy.
 
-3. **Conectar el dominio de Porkbun.** En cada proyecto de Vercel, en
-   Settings → Domains, agregar el dominio y copiar los valores de DNS que Vercel indique.
+3. **Conectar el dominio de Porkbun.** En cada proyecto de Vercel, entrar a la pestaña
+   **Domains** — está *afuera* de Settings, como pestaña propia del proyecto, junto a
+   Deployments — botón **Add Domains**, y copiar los valores de DNS que Vercel indique.
+
+   En `innova-web` se agregan dos: `innovaapps.app` conectado a Production, y
+   `www.innovaapps.app` como **Redirect to Another Domain** (308) hacia `innovaapps.app`,
+   para que exista una sola dirección oficial. En `innova-app-solutions` se agrega
+   `app.innovaapps.app` conectado a Production.
+
    En Porkbun quedará algo así:
 
    | Tipo | Host | Apunta a |
