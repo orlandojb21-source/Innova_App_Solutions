@@ -299,8 +299,8 @@ a:hover { color: #7ce7f7; }
 .hero__foto {
   position: relative;
   margin: 0;
-  -webkit-mask-image: linear-gradient(180deg, #000 50%, transparent 97%);
-  mask-image: linear-gradient(180deg, #000 50%, transparent 97%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 50%, transparent 97%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 8%, #000 50%, transparent 97%);
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
 }
