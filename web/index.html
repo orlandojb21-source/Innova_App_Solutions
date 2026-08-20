@@ -25,8 +25,8 @@
 <meta property="og:image" content="https://innovaapps.app/img/icon-512.png">
 <meta name="twitter:card" content="summary">
 
-<link rel="icon" href="img/icon-192.png">
-<link rel="apple-touch-icon" href="img/icon-192.png">
+<link rel="icon" href="img/icon-app-192.png">
+<link rel="apple-touch-icon" href="img/icon-app-192.png">
 <link rel="manifest" href="site.webmanifest">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -249,6 +249,71 @@
             para que nadie vuelva a copiar y pegar datos a mano.
           </p>
         </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== INSTALAR (la demostración) ====================== -->
+  <section class="seccion" id="instalar">
+    <div class="contenedor">
+      <div class="demo">
+
+        <div class="demo__texto">
+          <p class="seccion__rotulo">Pruébalo aquí mismo</p>
+          <h2 class="demo__titulo">Esta página <span class="texto-degradado">es</span> una PWA. Instálala y compruébalo.</h2>
+          <p class="demo__parrafo">
+            No hay tienda de aplicaciones, ni descarga de cientos de megas, ni actualizaciones
+            que alguien tenga que aceptar. En unos segundos queda con su ícono en tu pantalla
+            de inicio, abre a pantalla completa y sigue funcionando cuando te quedas sin señal.
+          </p>
+          <p class="demo__parrafo">
+            Así entregamos los sistemas de nuestros clientes. Lo que estás por hacer con esta
+            página es exactamente lo que hará tu equipo con el suyo.
+          </p>
+
+          <div class="demo__accion">
+            <button class="boton boton--principal" id="btn-instalar" type="button">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3 v11"/><path d="M8 10.5 L12 14.5 L16 10.5"/><path d="M4 17 v2.5 a1.5 1.5 0 0 0 1.5 1.5 h13 a1.5 1.5 0 0 0 1.5 -1.5 V17"/>
+              </svg>
+              Instalar esta página
+            </button>
+            <p class="demo__estado" id="estado-instalacion" aria-live="polite"></p>
+          </div>
+        </div>
+
+        <ul class="demo__lista">
+          <li class="demo__item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 6 h18"/><path d="M5 6 v13 a2 2 0 0 0 2 2 h10 a2 2 0 0 0 2 -2 V6"/><path d="M9 6 V4 a1 1 0 0 1 1 -1 h4 a1 1 0 0 1 1 1 v2"/>
+            </svg>
+            <div>
+              <h3 class="demo__item-titulo">Sin tienda de aplicaciones</h3>
+              <p class="demo__item-texto">No pasa por Google Play ni por la App Store: ni comisiones, ni esperas de aprobación, ni cuentas de desarrollador que renovar cada año.</p>
+            </div>
+          </li>
+
+          <li class="demo__item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6ec96f" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M2.5 8.5 a15 15 0 0 1 19 0"/><path d="M5.5 12 a11 11 0 0 1 13 0"/><path d="M8.5 15.5 a7 7 0 0 1 7 0"/><path d="M12 19.5 h0.01"/><path d="M3 3 L21 21"/>
+            </svg>
+            <div>
+              <h3 class="demo__item-titulo">Funciona sin internet</h3>
+              <p class="demo__item-texto">Haz la prueba: instálala, pon el celular en modo avión y ábrela. En el campo o en una bodega sin señal, tu equipo sigue trabajando.</p>
+            </div>
+          </li>
+
+          <li class="demo__item">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4fa8f5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.5 11.5 a8.5 8.5 0 1 1 -2.6 -6"/><path d="M20.5 4 v5 h-5"/>
+            </svg>
+            <div>
+              <h3 class="demo__item-titulo">Se actualiza sola</h3>
+              <p class="demo__item-texto">Cuando publicamos un cambio, tu equipo lo tiene la próxima vez que abre. Nadie tiene que actualizar nada en su teléfono.</p>
+            </div>
+          </li>
+        </ul>
 
       </div>
     </div>
