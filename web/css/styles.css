@@ -294,13 +294,15 @@ a:hover { color: #7ce7f7; }
   gap: 26px;
 }
 
+/* Sin marco: los bordes se disuelven en el fondo con una mascara radial.
+   Los navegadores que no soporten mask muestran la foto rectangular, sin romperse. */
 .hero__foto {
   position: relative;
   margin: 0;
-  border: 1px solid var(--borde);
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 24px 60px rgba(3, 10, 26, 0.5);
+  -webkit-mask-image: radial-gradient(ellipse 78% 72% at 55% 45%, #000 52%, transparent 100%);
+  mask-image: radial-gradient(ellipse 78% 72% at 55% 45%, #000 52%, transparent 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
 }
 .hero__foto img {
   display: block;
@@ -315,8 +317,8 @@ a:hover { color: #7ce7f7; }
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(5, 11, 24, 0) 55%, rgba(5, 11, 24, 0.5) 100%),
-    linear-gradient(125deg, rgba(47, 143, 239, 0.18), rgba(34, 211, 238, 0.05) 60%);
+    linear-gradient(180deg, rgba(5, 11, 24, 0) 48%, rgba(5, 11, 24, 0.68) 100%),
+    linear-gradient(125deg, rgba(47, 143, 239, 0.20), rgba(34, 211, 238, 0.05) 60%);
   pointer-events: none;
 }
 
