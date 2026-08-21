@@ -359,6 +359,10 @@ a:hover { color: #7ce7f7; }
   flex-wrap: wrap;
   gap: 14px;
   margin-top: 8px;
+  /* La columna es flex, asi que los hijos se encogen a su contenido: sin el
+     stretch, centrar no tendria efecto porque la fila mide lo mismo que los botones. */
+  align-self: stretch;
+  justify-content: center;
 }
 
 .hero__nota {
