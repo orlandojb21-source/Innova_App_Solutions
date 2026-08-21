@@ -104,6 +104,29 @@ imagen de 1200×630 px guardada en `web/img/` y apuntar ahí la etiqueta `og:ima
 
 ---
 
+## Capturas del panel para la web
+
+ es una copia del panel **que no se conecta a nada**: reemplaza las
+llamadas al servidor por datos inventados. Sirve para tomar capturas de pantalla
+sin exponer informacion de ningun cliente y sin tocar la hoja real.
+
+No se publica en ningun lado: queda fuera de las carpetas que Vercel sube.
+
+\  index.html generado desde ../app/index.html
+Luego se abre  con doble clic. El panel entra directo,
+sin pedir cuenta de Google, con clientes, cotizaciones, ventas y gastos de
+mentira. Abajo sale una franja verde que avisa que son datos inventados, con un
+boton para ocultarla justo antes de capturar.
+
+Hay que volver a ejecutar  cada vez que cambie
+. Los estilos y el javascript se leen directo de , asi
+que esos siempre estan al dia.
+
+Si al capturar sale un error diciendo que una accion no guarda nada, es correcto:
+solo estan simuladas las pantallas de consulta, no las de guardar o borrar.
+
+---
+
 ## El backend del panel
 
 `apps-script/` es el código que corre en Google Apps Script y guarda los datos en

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>InnovaAppSolutions — copia para capturas</title>
+<meta name="description" content="Panel interno de Innova App Solutions: cotizaciones, ventas y proyectos.">
+<meta name="theme-color" content="#0b1830">
+<link rel="manifest" href="../app/manifest.json">
+<link rel="icon" href="../app/img/icon-192.png">
+
+<!-- PWA en iOS: Safari no lee manifest.json para "Agregar a inicio", necesita estas etiquetas -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="InnovaAppSolutions">
+<link rel="apple-touch-icon" href="../app/img/icon-192.png">
+
+<!-- PWA en Android/Chrome -->
+<meta name="mobile-web-app-capable" content="yes">
+
+<link rel="stylesheet" href="../app/css/styles.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+<div id="pantalla-login" class="pantalla-login">
+  <div class="tarjeta-login">
+    <img class="logo" src="../app/img/icon-192.png" alt="Innova App Solutions">
+    <h1>InnovaAppSolutions</h1>
+    <p>Cotizaciones, ventas y proyectos de Innova App Solutions.</p>
+    <button class="btn-google" id="btn-google-login">
+      <img src="https://www.google.com/favicon.ico" alt="">
+      Iniciar sesión con Google
+    </button>
+    <div class="login-spinner oculto" id="login-spinner">Verificando…</div>
+  </div>
+</div>
+
+<div id="app-shell" class="app-shell oculto">
+  <header class="topbar">
+    <div class="topbar-marca">
+      <img src="../app/img/icon-192.png" alt="">
+      <span>InnovaAppSolutions</span>
+    </div>
+    <div class="topbar-acciones">
+      <button class="btn-campanita" id="btn-campanita" title="Suscripciones y soporte por vencer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+        <span class="badge badge-rojo oculto" id="badge-alertas">0</span>
+      </button>
+      <button class="btn-salir" id="btn-salir">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <div class="cuerpo">
+    <nav class="nav-lateral">
+      <button class="nav-btn" data-vista="dashboard">Resumen</button>
+      <button class="nav-btn" data-vista="cotizaciones">Cotizaciones</button>
+      <button class="nav-btn" data-vista="ventas">Ventas</button>
+      <button class="nav-btn" data-vista="gastos">Gastos</button>
+      <button class="nav-btn" data-vista="suscripciones">Suscripciones</button>
+      <button class="nav-btn" data-vista="soporte">Soporte</button>
+      <button class="nav-btn" data-vista="proyectos">Proyectos</button>
+      <button class="nav-btn" data-vista="clientes">Clientes</button>
+      <button class="nav-btn" data-vista="reportes">Reportes</button>
+      <button class="nav-btn" data-vista="papelera">Papelera</button>
+      <button class="nav-btn" data-vista="ajustes">Ajustes</button>
+    </nav>
+
+    <main class="contenido">
+      <section id="vista-dashboard" class="vista"></section>
+      <section id="vista-clientes" class="vista oculto"></section>
+      <section id="vista-cotizaciones" class="vista oculto"></section>
+      <section id="vista-ventas" class="vista oculto"></section>
+      <section id="vista-gastos" class="vista oculto"></section>
+      <section id="vista-suscripciones" class="vista oculto"></section>
+      <section id="vista-soporte" class="vista oculto"></section>
+      <section id="vista-proyectos" class="vista oculto"></section>
+      <section id="vista-reportes" class="vista oculto"></section>
+      <section id="vista-papelera" class="vista oculto"></section>
+      <section id="vista-ajustes" class="vista oculto"></section>
+    </main>
+  </div>
+</div>
+
+<div id="modal-overlay" class="modal-overlay oculto">
+  <div id="modal-contenido" class="modal"></div>
+</div>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script src="../app/js/utils.js"></script>
+<script src="../app/js/api.js"></script>
+<script src="../app/js/auth.js"></script>
+<script src="../app/js/alertas.js"></script>
+<script src="../app/js/dashboard.js"></script>
+<script src="../app/js/clientes.js"></script>
+<script src="../app/js/cotizaciones.js"></script>
+<script src="../app/js/ventas.js"></script>
+<script src="../app/js/gastos.js"></script>
+<script src="../app/js/suscripciones.js"></script>
+<script src="../app/js/soporte.js"></script>
+<script src="../app/js/proyectos.js"></script>
+<script src="../app/js/reportes.js"></script>
+<script src="../app/js/papelera.js"></script>
+<script src="../app/js/ajustes.js"></script>
+<script src="demo.js"></script>
+<script src="../app/js/app.js"></script>
+
+<div style="position:fixed;left:0;right:0;bottom:0;z-index:9999;padding:7px 14px;
+            background:#7cb342;color:#08210a;font:600 12.5px/1.4 system-ui,sans-serif;
+            text-align:center" id="aviso-demo">
+  Copia solo para capturas — todos los datos son inventados.
+  <button type="button" onclick="document.getElementById('aviso-demo').remove()"
+          style="margin-left:10px;padding:2px 9px;border:0;border-radius:5px;
+                 background:#08210a;color:#e8f5e9;font:inherit;cursor:pointer">
+    Ocultar para capturar
+  </button>
+</div>
+</body>
+</html>
