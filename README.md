@@ -46,8 +46,14 @@ los diferencia es el ajuste *Root Directory* (carpeta raíz) de cada uno:
 | `innova-web` | `web` | `innovaapps.app` |
 | `innova-app-solutions` | `app` | `app.innovaapps.app` |
 
-Con eso, cuando subes cambios a GitHub cada proyecto publica solo su carpeta.
-Cambiar la web nunca vuelve a publicar el panel, y viceversa.
+Con eso, cada proyecto **publica solo el contenido de su carpeta**: aunque toques la
+web, el panel sigue sirviendo exactamente los mismos archivos que antes.
+
+Lo que sí ocurre es que un cambio en cualquier carpeta **dispara el despliegue de los
+dos proyectos**, porque ambos vigilan el mismo repositorio. Es inofensivo —el que no
+cambió vuelve a publicar lo mismo— pero si molesta, Vercel lo evita: Settings →
+Build and Deployment → Root Directory → activar el interruptor **Skip deployment**,
+que salta el despliegue cuando el commit no tocó esa carpeta.
 
 ### Si algún día hay que rehacer esta configuración
 
