@@ -544,6 +544,7 @@ a:hover { color: #7ce7f7; }
   background: linear-gradient(120deg, rgba(67, 160, 71, 0.12), rgba(10, 18, 36, 0.4) 60%);
 }
 .servicio--ancho .servicio__texto { max-width: 78ch; }
+.servicio--ia { background: linear-gradient(120deg, rgba(34, 211, 238, 0.13), rgba(10, 18, 36, 0.4) 60%); }
 .servicio__titulo { font-size: clamp(19px, 2.2vw, 21px); }
 .servicio__texto {
   font-size: 15px;
