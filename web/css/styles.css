@@ -533,6 +533,13 @@ a:hover { color: #7ce7f7; }
 .servicio--cyan { background: linear-gradient(160deg, rgba(34, 211, 238, 0.09), rgba(10, 18, 36, 0.4)); }
 .servicio--verde { background: linear-gradient(160deg, rgba(67, 160, 71, 0.10), rgba(10, 18, 36, 0.4)); }
 .servicio--azul { background: linear-gradient(160deg, rgba(47, 143, 239, 0.08), rgba(10, 18, 36, 0.4)); }
+
+/* La quinta tarjeta ocupa el ancho completo: si no, quedaría sola en su fila. */
+.servicio--ancho {
+  grid-column: 1 / -1;
+  background: linear-gradient(120deg, rgba(67, 160, 71, 0.12), rgba(10, 18, 36, 0.4) 60%);
+}
+.servicio--ancho .servicio__texto { max-width: 78ch; }
 .servicio__titulo { font-size: clamp(19px, 2.2vw, 21px); }
 .servicio__texto {
   font-size: 15px;
