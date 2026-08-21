@@ -534,6 +534,23 @@ a:hover { color: #7ce7f7; }
   border-color: rgba(120, 165, 230, 0.34);
   transform: translateY(-2px);
 }
+
+/* Ícono grande de fondo, en la esquina que quedaba vacía. */
+.servicio { position: relative; }
+.servicio__marca {
+  position: absolute;
+  top: clamp(16px, 2vw, 26px);
+  right: clamp(16px, 2vw, 26px);
+  width: clamp(58px, 7vw, 96px);
+  height: auto;
+  opacity: 0.15;
+  pointer-events: none;
+}
+/* El texto se levanta por encima: si el título es largo y llega hasta la
+   esquina, pasa por delante del ícono en vez de quedar tapado. */
+.servicio > svg:not(.servicio__marca),
+.servicio__titulo,
+.servicio__texto { position: relative; z-index: 1; }
 .servicio--cyan { background: linear-gradient(160deg, rgba(34, 211, 238, 0.09), rgba(10, 18, 36, 0.4)); }
 .servicio--verde { background: linear-gradient(160deg, rgba(67, 160, 71, 0.10), rgba(10, 18, 36, 0.4)); }
 .servicio--azul { background: linear-gradient(160deg, rgba(47, 143, 239, 0.08), rgba(10, 18, 36, 0.4)); }
